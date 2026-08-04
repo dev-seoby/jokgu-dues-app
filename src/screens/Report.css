@@ -1,42 +1,35 @@
-.report-page {
-  padding: 0 20px 32px;
-  display: flex;
-  flex-direction: column;
-  gap: 28px;
-}
-
-.summary-cards {
+.report-summary-cards {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
+  gap: 16px;
+  margin-bottom: 32px;
 }
 
-.summary-card {
-  background: var(--surface);
+.report-summary-card {
+  border: 1px solid var(--seed-color-stroke-neutral-muted, #eaeaea);
   border-radius: 12px;
-  padding: 12px 10px;
+  padding: 18px 20px;
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
-.summary-label {
-  font-size: 12px;
-  color: var(--text-secondary);
+.report-summary-card.highlight {
+  background: var(--seed-color-bg-neutral-weak, #f7f7f8);
+  border-color: transparent;
 }
 
-.summary-value {
-  font-size: 15px;
-  font-variant-numeric: tabular-nums;
-  color: var(--text-primary);
+.report-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-bottom: 32px;
 }
 
-.summary-value.income {
-  color: var(--positive);
-}
-
-.summary-value.expense {
-  color: var(--negative);
+.section-header-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
 }
 
 .net-chart {
@@ -47,20 +40,20 @@
 
 .net-row {
   display: grid;
-  grid-template-columns: 32px 1fr 92px;
+  grid-template-columns: 36px 1fr 100px;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 
 .net-month {
   font-size: 13px;
-  color: var(--text-secondary);
+  color: var(--seed-color-fg-neutral-muted, #8b8b8b);
 }
 
 .net-track {
   position: relative;
   height: 10px;
-  background: var(--border);
+  background: var(--seed-color-bg-neutral-weak, #eee);
   border-radius: 6px;
   overflow: hidden;
 }
@@ -83,30 +76,26 @@
 }
 
 .net-bar.positive {
-  background: var(--positive);
+  background: var(--seed-color-bg-brand-solid, #3182f6);
 }
 
 .net-bar.negative {
-  background: var(--negative);
+  background: var(--seed-color-bg-critical-solid, #f04452);
 }
 
 .net-amount {
   font-size: 13px;
   text-align: right;
   font-variant-numeric: tabular-nums;
-  color: var(--text-primary);
+  color: var(--seed-color-fg-neutral, #1c1c1e);
 }
 
 .net-amount.negative {
-  color: var(--negative);
-}
-
-.net-amount.positive {
-  color: var(--positive);
+  color: var(--seed-color-fg-critical, #f04452);
 }
 
 .month-tabs-wrap {
-  position: relative;
+  margin-bottom: 24px;
 }
 
 .month-tabs {
@@ -126,48 +115,37 @@
   padding: 8px 14px;
   border-radius: 999px;
   border: none;
-  background: var(--surface);
-  color: var(--text-secondary);
+  background: var(--seed-color-bg-neutral-weak, #f7f7f8);
+  color: var(--seed-color-fg-neutral-muted, #6b7280);
   font-size: 14px;
   cursor: pointer;
 }
 
 .month-tab.active {
-  background: var(--text-primary);
+  background: var(--seed-color-bg-neutral-solid, #1c1c1e);
   color: #ffffff;
 }
 
-.unpaid-count {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--negative);
+.report-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
 }
 
 .unpaid-list {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  max-height: 168px;
+  max-height: 220px;
   overflow-y: auto;
 }
 
 .unpaid-pill {
   padding: 6px 12px;
   border-radius: 999px;
-  background: var(--negative-weak);
-  color: var(--negative);
+  background: var(--seed-color-bg-critical-weak, #ffe8ea);
+  color: var(--seed-color-fg-critical, #f04452);
   font-size: 13px;
-}
-
-.show-more-btn {
-  align-self: flex-start;
-  border: none;
-  background: none;
-  color: var(--text-secondary);
-  font-size: 13px;
-  padding: 4px 0;
-  cursor: pointer;
-  text-decoration: underline;
 }
 
 .category-list {
@@ -179,25 +157,25 @@
 .category-row-top {
   display: flex;
   justify-content: space-between;
-  font-size: 14px;
-  color: var(--text-primary);
   margin-bottom: 6px;
-}
-
-.category-amount {
-  font-variant-numeric: tabular-nums;
-  color: var(--negative);
 }
 
 .category-track {
   height: 8px;
-  background: var(--border);
+  background: var(--seed-color-bg-neutral-weak, #eee);
   border-radius: 4px;
   overflow: hidden;
 }
 
 .category-bar {
   height: 100%;
-  background: var(--negative);
+  background: var(--seed-color-bg-critical-solid, #f04452);
   border-radius: 4px;
+}
+
+@media (max-width: 800px) {
+  .report-summary-cards,
+  .report-columns {
+    grid-template-columns: 1fr;
+  }
 }

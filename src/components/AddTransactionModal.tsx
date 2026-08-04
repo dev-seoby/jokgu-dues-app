@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { ActionButton, TextField, VStack, HStack, Text } from "@seed-design/react";
 import type { Transaction, TransactionType } from "../data/mock";
 import { EXPENSE_CATEGORIES } from "../data/mock";
 import "./AddTransactionModal.css";
@@ -45,37 +46,47 @@ export function AddTransactionModal({
   return (
     <div className="modal-backdrop" onClick={onClose}>
       <div className="modal-sheet" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header">
-          <h2>{type === "income" ? "입금 추가" : "출금 추가"}</h2>
-          <button className="modal-close" onClick={onClose} aria-label="닫기">
+        <HStack justify="space-between" align="center">
+          <Text textStyle="t6Bold" color="fg.neutral">
+            {type === "income" ? "입금 추가" : "출금 추가"}
+          </Text>
+          <ActionButton size="small" variant="ghost" layout="iconOnly" aria-label="닫기" onClick={onClose}>
             ✕
-          </button>
-        </div>
+          </ActionButton>
+        </HStack>
 
-        <div className="modal-type-toggle">
-          <button
-            className={type === "income" ? "active income" : ""}
+        <HStack gap="x2">
+          <ActionButton
+            flexGrow
+            size="medium"
+            variant={type === "income" ? "brandSolid" : "neutralOutline"}
             onClick={() => setType("income")}
           >
             입금
-          </button>
-          <button
-            className={type === "expense" ? "active expense" : ""}
+          </ActionButton>
+          <ActionButton
+            flexGrow
+            size="medium"
+            variant={type === "expense" ? "criticalSolid" : "neutralOutline"}
             onClick={() => setType("expense")}
           >
             출금
-          </button>
-        </div>
+          </ActionButton>
+        </HStack>
 
-        <label className="modal-field">
-          <span>날짜</span>
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-        </label>
+        <VStack gap="x1">
+          <Text textStyle="t3Medium" color="fg.neutralMuted">
+            날짜
+          </Text>
+          <input type="date" className="plain-input" value={date} onChange={(e) => setDate(e.target.value)} />
+        </VStack>
 
-        <label className="modal-field">
-          <span>항목</span>
+        <VStack gap="x1">
+          <Text textStyle="t3Medium" color="fg.neutralMuted">
+            항목
+          </Text>
           {type === "expense" ? (
-            <select value={category} onChange={(e) => setCategory(e.target.value)}>
+            <select className="plain-input" value={category} onChange={(e) => setCategory(e.target.value)}>
               {EXPENSE_CATEGORIES.map((c) => (
                 <option key={c} value={c}>
                   {c}
@@ -83,48 +94,53 @@ export function AddTransactionModal({
               ))}
             </select>
           ) : (
-            <input
-              type="text"
-              value={category}
-              placeholder="예: 회비, 찬조금"
-              onChange={(e) => setCategory(e.target.value)}
-            />
+            <TextField.Root>
+              <TextField.Input
+                placeholder="예: 회비, 찬조금"
+                value={category}
+                onChange={(e) => setCategory(e.target.value)}
+              />
+            </TextField.Root>
           )}
-        </label>
+        </VStack>
 
-        <label className="modal-field">
-          <span>금액</span>
-          <input
-            type="number"
-            inputMode="numeric"
-            placeholder="0"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-          />
-        </label>
+        <VStack gap="x1">
+          <Text textStyle="t3Medium" color="fg.neutralMuted">
+            금액
+          </Text>
+          <TextField.Root>
+            <TextField.Input
+              type="number"
+              inputMode="numeric"
+              placeholder="0"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+            />
+            <TextField.SuffixText>원</TextField.SuffixText>
+          </TextField.Root>
+        </VStack>
 
-        <label className="modal-field">
-          <span>메모</span>
-          <input
-            type="text"
-            placeholder="선택 입력"
-            value={memo}
-            onChange={(e) => setMemo(e.target.value)}
-          />
-        </label>
+        <VStack gap="x1">
+          <Text textStyle="t3Medium" color="fg.neutralMuted">
+            메모
+          </Text>
+          <TextField.Root>
+            <TextField.Input placeholder="선택 입력" value={memo} onChange={(e) => setMemo(e.target.value)} />
+          </TextField.Root>
+        </VStack>
 
-        <label className="modal-field">
-          <span>영수증 사진</span>
+        <VStack gap="x1">
+          <Text textStyle="t3Medium" color="fg.neutralMuted">
+            영수증 사진
+          </Text>
           <input type="file" accept="image/*" onChange={handleReceiptChange} />
-        </label>
+        </VStack>
 
-        {receiptPreview && (
-          <img className="modal-receipt-preview" src={receiptPreview} alt="영수증 미리보기" />
-        )}
+        {receiptPreview && <img className="modal-receipt-preview" src={receiptPreview} alt="영수증 미리보기" />}
 
-        <button className="modal-submit" disabled={!canSubmit} onClick={handleSubmit}>
+        <ActionButton size="large" variant="neutralSolid" disabled={!canSubmit} onClick={handleSubmit}>
           {type === "income" ? "입금 추가하기" : "출금 추가하기"}
-        </button>
+        </ActionButton>
       </div>
     </div>
   );

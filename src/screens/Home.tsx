@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
-import { Top } from "@toss/tds-mobile";
+import { ActionButton, HStack, Text, VStack } from "@seed-design/react";
 import type { Member, Transaction } from "../data/mock";
 import { won, isPaid, CURRENT_MONTH } from "../data/mock";
 import { AddTransactionModal } from "../components/AddTransactionModal";
-import type { TabKey } from "../components/BottomNav";
+import { PageHeader } from "../components/PageHeader";
+import type { TabKey } from "../App";
 import "./Home.css";
 
 const dateLabel = (iso: string) => iso.slice(2).replace(/-/g, ".");
@@ -22,8 +23,7 @@ export function Home({
   const [modalType, setModalType] = useState<"income" | "expense" | null>(null);
 
   const balance = useMemo(
-    () =>
-      transactions.reduce((sum, t) => sum + (t.type === "income" ? t.amount : -t.amount), 0),
+    () => transactions.reduce((sum, t) => sum + (t.type === "income" ? t.amount : -t.amount), 0),
     [transactions],
   );
 
@@ -34,9 +34,7 @@ export function Home({
   const monthIncome = thisMonth.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
   const monthExpense = thisMonth.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
 
-  const recent = [...transactions]
-    .sort((a, b) => (a.date < b.date ? 1 : -1))
-    .slice(0, 5);
+  const recent = [...transactions].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 6);
 
   const activeMembersList = members.filter((m) => m.status === "active");
   const unpaidCount = activeMembersList.filter((m) => !isPaid(m, CURRENT_MONTH)).length;
@@ -45,79 +43,99 @@ export function Home({
 
   return (
     <>
-      <Top
-        title={<Top.TitleParagraph size={22}>조기축구팀 회비</Top.TitleParagraph>}
-        subtitleBottom={<Top.SubtitleParagraph size={15}>총무 대시보드</Top.SubtitleParagraph>}
+      <PageHeader
+        title="홈"
+        subtitle="하루FC 회비 현황을 한눈에 확인하세요"
+        action={
+          <HStack gap="x2">
+            <ActionButton variant="neutralOutline" size="medium" onClick={() => setModalType("income")}>
+              + 입금 추가
+            </ActionButton>
+            <ActionButton variant="criticalSolid" size="medium" onClick={() => setModalType("expense")}>
+              − 출금 추가
+            </ActionButton>
+          </HStack>
+        }
       />
 
-      <div className="home-page screen-scroll-area">
-        <section className="balance-card">
-          <span className="balance-label">모임 잔액</span>
-          <strong className="balance-value">{won(balance)}</strong>
-          <div className="balance-split">
-            <div>
-              <span>이번달 입금</span>
-              <strong className="income">{won(monthIncome)}</strong>
-            </div>
-            <div>
-              <span>이번달 출금</span>
-              <strong className="expense">{won(monthExpense)}</strong>
-            </div>
-          </div>
-        </section>
-
-        <div className="quick-actions">
-          <button className="quick-action income" onClick={() => setModalType("income")}>
-            + 입금 추가
-          </button>
-          <button className="quick-action expense" onClick={() => setModalType("expense")}>
-            − 출금 추가
-          </button>
+      <div className="home-stat-grid">
+        <div className="stat-card highlight">
+          <Text textStyle="t3Medium" color="fg.neutralMuted">
+            모임 잔액
+          </Text>
+          <Text textStyle="t8Bold" color="fg.neutral">
+            {won(balance)}
+          </Text>
         </div>
+        <div className="stat-card">
+          <Text textStyle="t3Medium" color="fg.neutralMuted">
+            이번달 입금
+          </Text>
+          <Text textStyle="t6Bold" color="fg.brand">
+            {won(monthIncome)}
+          </Text>
+        </div>
+        <div className="stat-card">
+          <Text textStyle="t3Medium" color="fg.neutralMuted">
+            이번달 출금
+          </Text>
+          <Text textStyle="t6Bold" color="fg.critical">
+            {won(monthExpense)}
+          </Text>
+        </div>
+      </div>
 
-        <section className="section">
-          <div className="section-header-row">
-            <h2 className="section-title">최근 내역</h2>
-            <button className="link-btn" onClick={() => onNavigate("transactions")}>
+      <div className="home-columns">
+        <VStack gap="x3" className="home-col-main">
+          <HStack justify="space-between" align="center">
+            <Text textStyle="t5Bold" color="fg.neutral">
+              최근 내역
+            </Text>
+            <ActionButton variant="ghost" size="small" onClick={() => onNavigate("transactions")}>
               전체보기
-            </button>
-          </div>
-          <ul className="recent-list">
+            </ActionButton>
+          </HStack>
+          <div className="recent-list">
             {recent.map((t) => (
-              <li key={t.id} className="recent-item">
-                <div className="recent-item-main">
-                  <span className="recent-category">{t.category}</span>
-                  <span className="recent-memo">{t.memo}</span>
+              <div key={t.id} className="recent-row">
+                <div>
+                  <Text textStyle="t4Medium" color="fg.neutral">
+                    {t.category}
+                  </Text>
+                  <Text textStyle="t3Regular" color="fg.neutralMuted" style={{ display: "block" }}>
+                    {t.memo}
+                  </Text>
                 </div>
-                <div className="recent-item-side">
-                  <span className={`recent-amount ${t.type}`}>
+                <div className="recent-row-side">
+                  <Text textStyle="t4Bold" color={t.type === "income" ? "fg.brand" : "fg.critical"}>
                     {t.type === "income" ? "+" : "-"}
                     {won(t.amount)}
-                  </span>
-                  <span className="recent-date">{dateLabel(t.date)}</span>
+                  </Text>
+                  <Text textStyle="t2Regular" color="fg.neutralMuted">
+                    {dateLabel(t.date)}
+                  </Text>
                 </div>
-              </li>
+              </div>
             ))}
-          </ul>
-        </section>
-
-        <section className="section">
-          <div className="section-header-row">
-            <h2 className="section-title">이번달 미납 회원</h2>
-            <button className="link-btn" onClick={() => onNavigate("members")}>
-              자세히 보기
-            </button>
           </div>
-          <div className="unpaid-progress-row">
+        </VStack>
+
+        <VStack gap="x3" className="home-col-side">
+          <Text textStyle="t5Bold" color="fg.neutral">
+            이번달 미납 현황
+          </Text>
+          <div className="unpaid-card">
             <div className="unpaid-progress-track">
               <div className="unpaid-progress-fill" style={{ width: `${paidRatio}%` }} />
             </div>
-            <span className="unpaid-progress-label">{paidRatio}%</span>
+            <Text textStyle="t4Medium" color="fg.neutral">
+              {total - unpaidCount}/{total}명 납부완료 ({paidRatio}%)
+            </Text>
+            <ActionButton variant="neutralWeak" size="small" onClick={() => onNavigate("members")}>
+              회원관리에서 보기
+            </ActionButton>
           </div>
-          <span className="unpaid-progress-sub">
-            {total - unpaidCount}/{total}명 납부완료
-          </span>
-        </section>
+        </VStack>
       </div>
 
       {modalType && (

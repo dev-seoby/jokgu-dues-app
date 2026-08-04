@@ -1,72 +1,20 @@
-#root {
-  width: 100%;
-  min-height: 100vh;
-  box-sizing: border-box;
-  position: relative;
+.team-logo-slot {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--seed-color-bg-neutral-weak, #f2f2f2);
+  border: 1px dashed var(--seed-color-stroke-neutral-muted, #d9d9d9);
+  flex-shrink: 0;
 }
 
-@media (min-width: 481px) {
-  #root {
-    background-color: #ffffff !important;
-    max-width: 480px;
-    margin: 0 auto;
+.page-area {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 32px 40px 80px;
+}
+
+@media (max-width: 720px) {
+  .page-area {
+    padding: 20px 16px 60px;
   }
-}
-
-/* 컬러 토큰: 브랜드 색은 sky 계열로 고정, red는 미납/지출(음수) 전용 */
-:root {
-  --brand: #3182f6;
-  --brand-weak: #e8f3ff;
-  --positive: #3182f6;
-  --negative: #f04452;
-  --negative-weak: #ffe8ea;
-  --text-primary: #1c1c1e;
-  --text-secondary: #6b7280;
-  --border: #eceff2;
-  --surface: #f9fafb;
-}
-
-/* 화면 공통: 섹션 레이아웃 */
-.section {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.section-title {
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-primary);
-  margin: 0;
-}
-
-.section-header-row {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-}
-
-.empty-note {
-  font-size: 13px;
-  color: var(--text-secondary);
-  margin: 0;
-}
-
-/* 가로 스크롤 영역에 사용하는 좌우 페이드 힌트 (월 탭, 회원 그리드 공용) */
-.scroll-fade {
-  position: absolute;
-  top: 0;
-  bottom: 2px;
-  width: 24px;
-  pointer-events: none;
-}
-
-.scroll-fade.left {
-  left: 0;
-  background: linear-gradient(to right, #ffffff, rgba(255, 255, 255, 0));
-}
-
-.scroll-fade.right {
-  right: 0;
-  background: linear-gradient(to left, #ffffff, rgba(255, 255, 255, 0));
 }
