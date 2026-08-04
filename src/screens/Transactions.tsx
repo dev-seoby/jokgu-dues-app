@@ -79,7 +79,7 @@ export function Transactions({
 
         <TextField.Root value={keyword} onValueChange={setKeyword} className="tx-search">
           <TextField.PrefixIcon svg={<SearchIcon />} />
-          <TextField.Input placeholder="항목, 메모 검색" />
+          <TextField.Input aria-label="거래 내역 검색" placeholder="항목, 메모 검색" />
         </TextField.Root>
       </div>
 

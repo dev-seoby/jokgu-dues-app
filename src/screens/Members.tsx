@@ -1,9 +1,9 @@
 import { useMemo, useState } from "react";
-import { ActionButton, HStack, Text, TextField } from "@seed-design/react";
+import { ActionButton, HStack, Icon, Text, TextField } from "@seed-design/react";
 import type { Member } from "../data/mock";
 import { CURRENT_MONTH, isPaid } from "../data/mock";
 import { PageHeader } from "../components/PageHeader";
-import { SearchIcon } from "../components/icons";
+import { CloseIcon, SearchIcon } from "../components/icons";
 import "./Members.css";
 
 export function Members({
@@ -86,7 +86,7 @@ export function Members({
       <div className="members-toolbar">
         <TextField.Root value={keyword} onValueChange={setKeyword} className="members-search">
           <TextField.PrefixIcon svg={<SearchIcon />} />
-          <TextField.Input placeholder="이름 검색" />
+          <TextField.Input aria-label="회원 이름 검색" placeholder="이름 검색" />
         </TextField.Root>
 
         <HStack gap="x1_5">
@@ -96,6 +96,7 @@ export function Members({
             className="members-add-input"
           >
             <TextField.Input
+              aria-label="새 회원 이름"
               placeholder="새 회원 이름"
               onKeyDown={(e) => {
                 if (e.key === "Enter") handleAdd();
@@ -132,7 +133,7 @@ export function Members({
                   className="members-delete-btn"
                   onClick={() => handleDelete(m)}
                 >
-                  ✕
+                  <Icon svg={<CloseIcon />} />
                 </ActionButton>
               </div>
               <Text textStyle="t3Regular" color="fg.neutralMuted">

@@ -1,7 +1,8 @@
 import { useState } from "react";
-import { ActionButton, TextField, VStack, HStack, Text } from "@seed-design/react";
+import { ActionButton, Icon, TextField, VStack, HStack, Text } from "@seed-design/react";
 import type { Transaction, TransactionType } from "../data/mock";
 import { EXPENSE_CATEGORIES } from "../data/mock";
+import { CloseIcon } from "./icons";
 import "./AddTransactionModal.css";
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
@@ -51,7 +52,7 @@ export function AddTransactionModal({
             {type === "income" ? "입금 추가" : "출금 추가"}
           </Text>
           <ActionButton size="small" variant="ghost" layout="iconOnly" aria-label="닫기" onClick={onClose}>
-            ✕
+            <Icon svg={<CloseIcon />} />
           </ActionButton>
         </HStack>
 
@@ -96,6 +97,7 @@ export function AddTransactionModal({
           ) : (
             <TextField.Root>
               <TextField.Input
+                aria-label="항목"
                 placeholder="예: 회비, 찬조금"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
@@ -110,6 +112,7 @@ export function AddTransactionModal({
           </Text>
           <TextField.Root>
             <TextField.Input
+              aria-label="금액"
               type="number"
               inputMode="numeric"
               placeholder="0"
@@ -125,7 +128,7 @@ export function AddTransactionModal({
             메모
           </Text>
           <TextField.Root>
-            <TextField.Input placeholder="선택 입력" value={memo} onChange={(e) => setMemo(e.target.value)} />
+            <TextField.Input aria-label="메모" placeholder="선택 입력" value={memo} onChange={(e) => setMemo(e.target.value)} />
           </TextField.Root>
         </VStack>
 

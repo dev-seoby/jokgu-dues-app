@@ -57,3 +57,9 @@ export const SearchIcon = () => (
     <path d="m20 20-3.5-3.5" />
   </svg>
 );
+
+export const CloseIcon = () => (
+  <svg {...base} width={16} height={16}>
+    <path d="M6 6l12 12M18 6 6 18" />
+  </svg>
+);
