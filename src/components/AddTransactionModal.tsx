@@ -19,13 +19,16 @@ export function AddTransactionModal({
   const [type, setType] = useState<TransactionType>(initialType);
   const [date, setDate] = useState(todayISO());
   const [category, setCategory] = useState(type === "expense" ? EXPENSE_CATEGORIES[0] : "회비");
+  const [customCategory, setCustomCategory] = useState("");
   const [amount, setAmount] = useState("");
   const [memo, setMemo] = useState("");
   const [receiptPreview, setReceiptPreview] = useState<string | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const canSubmit = amount.trim().length > 0 && Number(amount) > 0;
   const isIncome = type === "income";
+  const isCustomCategory = type === "expense" && category === "기타";
+  const canSubmit =
+    amount.trim().length > 0 && Number(amount) > 0 && (!isCustomCategory || customCategory.trim().length > 0);
 
   const handleReceiptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -35,15 +38,31 @@ export function AddTransactionModal({
 
   const handleSubmit = () => {
     if (!canSubmit) return;
+    const finalCategory = isCustomCategory
+      ? customCategory.trim()
+      : category.trim() || (type === "income" ? "입금" : "지출");
     onSubmit({
       type,
-      category: category.trim() || (type === "income" ? "입금" : "지출"),
+      category: finalCategory,
       amount: Number(amount),
       memo,
       date,
       receiptImageUrl: receiptPreview,
     });
     onClose();
+  };
+
+  const handleCategorySelect = (value: string) => {
+    setCategory(value);
+    if (value !== "기타") {
+      setCustomCategory("");
+    }
+  };
+
+  const handleTypeChange = (nextType: TransactionType) => {
+    setType(nextType);
+    setCategory(nextType === "expense" ? EXPENSE_CATEGORIES[0] : "회비");
+    setCustomCategory("");
   };
 
   return (
@@ -69,7 +88,7 @@ export function AddTransactionModal({
               flexGrow
               size="large"
               variant={isIncome ? "brandSolid" : "neutralOutline"}
-              onClick={() => setType("income")}
+              onClick={() => handleTypeChange("income")}
             >
               입금
             </ActionButton>
@@ -77,7 +96,7 @@ export function AddTransactionModal({
               flexGrow
               size="large"
               variant={!isIncome ? "criticalSolid" : "neutralOutline"}
-              onClick={() => setType("expense")}
+              onClick={() => handleTypeChange("expense")}
             >
               출금
             </ActionButton>
@@ -96,7 +115,11 @@ export function AddTransactionModal({
                 항목
               </Text>
               {type === "expense" ? (
-                <select className="plain-input" value={category} onChange={(e) => setCategory(e.target.value)}>
+                <select
+                  className="plain-input"
+                  value={category}
+                  onChange={(e) => handleCategorySelect(e.target.value)}
+                >
                   {EXPENSE_CATEGORIES.map((c) => (
                     <option key={c} value={c}>
                       {c}
@@ -115,6 +138,23 @@ export function AddTransactionModal({
               )}
             </VStack>
           </div>
+
+          {isCustomCategory && (
+            <VStack gap="x1_5">
+              <Text textStyle="t2Bold" color="fg.neutralMuted">
+                기타 항목 직접 입력
+              </Text>
+              <TextField.Root className="modal-textfield">
+                <TextField.Input
+                  aria-label="기타 항목 직접 입력"
+                  placeholder="예: 심판비, 대회 참가비"
+                  value={customCategory}
+                  onChange={(e) => setCustomCategory(e.target.value)}
+                  autoFocus
+                />
+              </TextField.Root>
+            </VStack>
+          )}
 
           <VStack gap="x1_5">
             <Text textStyle="t2Bold" color="fg.neutralMuted">
