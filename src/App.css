@@ -1,0 +1,272 @@
+#root {
+  width: 100%;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+@media (min-width: 481px) {
+  #root {
+    background-color: #ffffff !important;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+}
+
+/* 컬러 토큰: 브랜드 색은 sky 계열로 고정, red는 미납/지출(음수) 전용 */
+:root {
+  --brand: #3182f6;
+  --brand-weak: #e8f3ff;
+  --positive: #3182f6;
+  --negative: #f04452;
+  --negative-weak: #ffe8ea;
+  --text-primary: #1c1c1e;
+  --text-secondary: #6b7280;
+  --border: #eceff2;
+  --surface: #f9fafb;
+}
+
+.report-page {
+  padding: 0 20px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* 요약 카드 */
+.summary-cards {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.summary-card {
+  background: var(--surface);
+  border-radius: 12px;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.summary-label {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.summary-value {
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.summary-value.income {
+  color: var(--positive);
+}
+
+.summary-value.expense {
+  color: var(--negative);
+}
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.section-header-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+/* 월별 순증감: 0 기준선 있는 다이버징 바 차트 */
+.net-chart {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.net-row {
+  display: grid;
+  grid-template-columns: 32px 1fr 92px;
+  align-items: center;
+  gap: 10px;
+}
+
+.net-month {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.net-track {
+  position: relative;
+  height: 10px;
+  background: var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.net-baseline {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: rgba(0, 0, 0, 0.18);
+  z-index: 1;
+}
+
+.net-bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  border-radius: 6px;
+}
+
+.net-bar.positive {
+  background: var(--positive);
+}
+
+.net-bar.negative {
+  background: var(--negative);
+}
+
+.net-amount {
+  font-size: 13px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-primary);
+}
+
+.net-amount.negative {
+  color: var(--negative);
+}
+
+.net-amount.positive {
+  color: var(--positive);
+}
+
+/* 월 탭: 가로 스크롤 + 스크롤 힌트용 페이드 */
+.month-tabs-wrap {
+  position: relative;
+}
+
+.month-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.month-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.month-tab {
+  flex: 0 0 auto;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: none;
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.month-tab.active {
+  background: var(--text-primary);
+  color: #ffffff;
+}
+
+.scroll-fade {
+  position: absolute;
+  top: 0;
+  bottom: 2px;
+  width: 24px;
+  pointer-events: none;
+}
+
+.scroll-fade.left {
+  left: 0;
+  background: linear-gradient(to right, #ffffff, rgba(255, 255, 255, 0));
+}
+
+.scroll-fade.right {
+  right: 0;
+  background: linear-gradient(to left, #ffffff, rgba(255, 255, 255, 0));
+}
+
+/* 미납 회원 목록: 스크롤 영역으로 제한 */
+.unpaid-count {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--negative);
+}
+
+.unpaid-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-height: 168px;
+  overflow-y: auto;
+}
+
+.unpaid-pill {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--negative-weak);
+  color: var(--negative);
+  font-size: 13px;
+}
+
+.show-more-btn {
+  align-self: flex-start;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  font-size: 13px;
+  padding: 4px 0;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+/* 카테고리별 지출 */
+.category-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.category-row-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+
+.category-amount {
+  font-variant-numeric: tabular-nums;
+  color: var(--negative);
+}
+
+.category-track {
+  height: 8px;
+  background: var(--border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.category-bar {
+  height: 100%;
+  background: var(--negative);
+  border-radius: 4px;
+}

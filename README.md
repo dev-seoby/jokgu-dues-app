@@ -17,11 +17,19 @@
 - Transaction: 유형(입금/지출), 날짜, 금액, 항목, 메모, 영수증 이미지
 
 ## 기술 스택
-- 프론트: 앱인토스 WebView SDK + React
-- 백엔드: Supabase (Postgres + Storage)
-- 인증: 토스 로그인 SDK (총무 1인)
+- 프론트: 앱인토스 WebView SDK (`create-ait-app react-ts` + TDS) + React + TypeScript + Vite
+- 백엔드: Supabase (Postgres + Storage) — 아직 미연동, 리포트 화면은 목업 데이터
+- 인증: 토스 로그인 SDK (총무 1인) — 아직 미연동
+
+## 로컬 실행
+\`\`\`bash
+npm install
+npm run dev
+\`\`\`
 
 ## 상태
 - [x] 기획 및 프로토타입 검토
-- [ ] 리포트 화면 코드 빌드
+- [x] 리포트 화면 코드 빌드 (목업 데이터, `src/App.tsx`)
+- [ ] Supabase 연동 (실 데이터)
+- [ ] 홈 / 거래 / 회원관리 화면
 - [ ] 앱인토스 콘솔 등록 및 검수
