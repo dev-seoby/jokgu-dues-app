@@ -68,6 +68,10 @@ function App() {
     );
   };
 
+  const handleDeleteMember = (memberId: string) => {
+    setMembers((prev) => prev.filter((m) => m.id !== memberId));
+  };
+
   return (
     <div className="app-shell">
       <aside className="app-sidebar">
@@ -123,6 +127,7 @@ function App() {
               onBulkSetMonth={handleBulkSetMonth}
               onAddMember={handleAddMember}
               onToggleResting={handleToggleResting}
+              onDeleteMember={handleDeleteMember}
             />
           )}
           {activeTab === "report" && <Report transactions={transactions} members={members} />}

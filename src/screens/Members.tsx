@@ -12,15 +12,18 @@ export function Members({
   onBulkSetMonth,
   onAddMember,
   onToggleResting,
+  onDeleteMember,
 }: {
   members: Member[];
   onToggleMonth: (memberId: string, month: number) => void;
   onBulkSetMonth: (month: number, paid: boolean) => void;
   onAddMember: (name: string) => void;
   onToggleResting: (memberId: string) => void;
+  onDeleteMember: (memberId: string) => void;
 }) {
   const [keyword, setKeyword] = useState("");
   const [newName, setNewName] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState(CURRENT_MONTH);
 
   const filtered = useMemo(
     () => members.filter((m) => m.name.toLowerCase().includes(keyword.trim().toLowerCase())),
@@ -28,7 +31,7 @@ export function Members({
   );
 
   const activeCount = members.filter((m) => m.status === "active").length;
-  const paidCount = members.filter((m) => m.status === "active" && isPaid(m, CURRENT_MONTH)).length;
+  const paidCount = members.filter((m) => m.status === "active" && isPaid(m, selectedMonth)).length;
 
   const handleAdd = () => {
     const name = newName.trim();
@@ -37,22 +40,48 @@ export function Members({
     setNewName("");
   };
 
+  const handleDelete = (member: Member) => {
+    if (window.confirm(`${member.name} 님을 회원 목록에서 삭제할까요?\n납부 이력도 함께 삭제돼요.`)) {
+      onDeleteMember(member.id);
+    }
+  };
+
   return (
     <>
       <PageHeader
         title="회원관리"
-        subtitle={`활동 회원 ${activeCount}명 · ${CURRENT_MONTH}월 납부 ${paidCount}명`}
+        subtitle={`활동 회원 ${activeCount}명 · ${selectedMonth}월 납부 ${paidCount}명`}
         action={
           <HStack gap="x2">
-            <ActionButton variant="neutralOutline" size="medium" onClick={() => onBulkSetMonth(CURRENT_MONTH, true)}>
-              {CURRENT_MONTH}월 전체 납부처리
+            <ActionButton
+              variant="neutralOutline"
+              size="medium"
+              onClick={() => onBulkSetMonth(selectedMonth, true)}
+            >
+              {selectedMonth}월 전체 납부처리
             </ActionButton>
-            <ActionButton variant="ghost" size="medium" onClick={() => onBulkSetMonth(CURRENT_MONTH, false)}>
+            <ActionButton variant="ghost" size="medium" onClick={() => onBulkSetMonth(selectedMonth, false)}>
               전체 취소
             </ActionButton>
           </HStack>
         }
       />
+
+      <div className="month-tabs-wrap">
+        <div className="month-tabs" role="tablist" aria-label="월 선택">
+          {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+            <button
+              key={month}
+              role="tab"
+              aria-selected={month === selectedMonth}
+              className={`month-tab ${month === selectedMonth ? "active" : ""}`}
+              onClick={() => setSelectedMonth(month)}
+            >
+              {month}월
+            </button>
+          ))}
+        </div>
+      </div>
 
       <div className="members-toolbar">
         <TextField.Root value={keyword} onValueChange={setKeyword} className="members-search">
@@ -82,18 +111,30 @@ export function Members({
       <div className="members-table">
         <div className="members-table-head">
           <span>이름</span>
-          <span>결제방식</span>
+          <span>납부방식</span>
           <span>상태</span>
-          <span className="members-col-center">{CURRENT_MONTH}월 납부</span>
+          <span className="members-col-center">{selectedMonth}월 납부</span>
         </div>
         {filtered.map((m) => {
-          const paid = isPaid(m, CURRENT_MONTH);
+          const paid = isPaid(m, selectedMonth);
           const resting = m.status === "resting";
           return (
             <div className={`members-table-row ${resting ? "is-resting" : ""}`} key={m.id}>
-              <Text textStyle="t4Medium" color="fg.neutral">
-                {m.name}
-              </Text>
+              <div className="members-name-cell">
+                <Text textStyle="t4Medium" color="fg.neutral">
+                  {m.name}
+                </Text>
+                <ActionButton
+                  size="xsmall"
+                  variant="ghost"
+                  layout="iconOnly"
+                  aria-label={`${m.name} 삭제`}
+                  className="members-delete-btn"
+                  onClick={() => handleDelete(m)}
+                >
+                  ✕
+                </ActionButton>
+              </div>
               <Text textStyle="t3Regular" color="fg.neutralMuted">
                 {m.paymentType === "annual_lump" ? "연납" : "월납"}
               </Text>
@@ -109,7 +150,7 @@ export function Members({
                   size="xsmall"
                   variant={paid ? "brandSolid" : "criticalSolid"}
                   disabled={m.paymentType === "annual_lump" || resting}
-                  onClick={() => onToggleMonth(m.id, CURRENT_MONTH)}
+                  onClick={() => onToggleMonth(m.id, selectedMonth)}
                 >
                   {m.paymentType === "annual_lump" ? "연납완료" : resting ? "휴회" : paid ? "납부완료" : "미납"}
                 </ActionButton>

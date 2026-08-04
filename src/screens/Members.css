@@ -1,3 +1,37 @@
+.month-tabs-wrap {
+  margin-bottom: 20px;
+}
+
+.month-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.month-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.month-tab {
+  flex: 0 0 auto;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: none;
+  background: var(--seed-color-bg-layer-default, #ffffff);
+  color: var(--seed-color-fg-neutral-muted, #6b7280);
+  font-size: 14px;
+  cursor: pointer;
+  border: 1px solid var(--seed-color-stroke-neutral-muted, #eaeaea);
+}
+
+.month-tab.active {
+  background: var(--seed-color-bg-neutral-solid, #1c1c1e);
+  border-color: transparent;
+  color: #ffffff;
+}
+
 .members-toolbar {
   display: flex;
   justify-content: space-between;
@@ -42,6 +76,28 @@
 
 .members-table-row.is-resting {
   opacity: 0.55;
+}
+
+.members-name-cell {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+}
+
+.members-delete-btn {
+  flex-shrink: 0;
+  opacity: 0.4;
+  color: var(--seed-color-fg-neutral-muted, #9aa0a6);
+}
+
+.members-table-row:hover .members-delete-btn {
+  opacity: 1;
+}
+
+.members-delete-btn:hover {
+  color: var(--seed-color-fg-critical, #f04452);
 }
 
 .members-col-center {
