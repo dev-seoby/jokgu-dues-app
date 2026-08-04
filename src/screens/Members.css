@@ -15,8 +15,9 @@
 }
 
 .members-table {
+  background: var(--seed-color-bg-layer-default, #ffffff);
   border: 1px solid var(--seed-color-stroke-neutral-muted, #eaeaea);
-  border-radius: 12px;
+  border-radius: 14px;
   overflow: hidden;
 }
 

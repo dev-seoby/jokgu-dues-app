@@ -6,24 +6,35 @@
 }
 
 .report-summary-card {
+  background: var(--seed-color-bg-layer-default, #ffffff);
   border: 1px solid var(--seed-color-stroke-neutral-muted, #eaeaea);
-  border-radius: 12px;
-  padding: 18px 20px;
+  border-radius: 14px;
+  padding: 20px 22px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .report-summary-card.highlight {
-  background: var(--seed-color-bg-neutral-weak, #f7f7f8);
+  background: var(--seed-color-bg-brand-weak, #eaf2ff);
   border-color: transparent;
 }
 
 .report-section {
+  background: var(--seed-color-bg-layer-default, #ffffff);
+  border: 1px solid var(--seed-color-stroke-neutral-muted, #eaeaea);
+  border-radius: 14px;
+  padding: 22px;
   display: flex;
   flex-direction: column;
   gap: 14px;
-  margin-bottom: 32px;
+  margin-bottom: 20px;
+}
+
+.month-tabs-wrap {
+  background: none;
+  border: none;
+  padding: 0;
 }
 
 .section-header-row {

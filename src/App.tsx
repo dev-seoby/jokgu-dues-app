@@ -1,20 +1,5 @@
 import { useState } from "react";
-import {
-  SideNavigationProvider,
-  SideNavigationRoot,
-  SideNavigationHeader,
-  SideNavigationContent,
-  SideNavigationFooter,
-  SideNavigationGroup,
-  SideNavigationGroupLabel,
-  SideNavigationItem,
-  SideNavigationItemLabel,
-  SideNavigationItemPrefixIcon,
-  SideNavigationInset,
-  HStack,
-  Text,
-  Box,
-} from "@seed-design/react";
+import { Box, Text } from "@seed-design/react";
 import { HomeIcon, TransactionIcon, MembersIcon, ReportIcon } from "./components/icons";
 import { Home } from "./screens/Home";
 import { Transactions } from "./screens/Transactions";
@@ -84,39 +69,41 @@ function App() {
   };
 
   return (
-    <SideNavigationProvider>
-      <SideNavigationRoot>
-        <SideNavigationHeader>
-          <HStack gap="x2_5" align="center" px="x1" py="x2">
-            <Box className="team-logo-slot" aria-hidden="true" />
-            <Text textStyle="t6Bold" color="fg.neutral">
-              하루FC
-            </Text>
-          </HStack>
-        </SideNavigationHeader>
+    <div className="app-shell">
+      <aside className="app-sidebar">
+        <div className="sidebar-header">
+          <Box className="team-logo-slot" aria-hidden="true" />
+          <Text textStyle="t6Bold" color="fg.neutral" className="team-name">
+            하루FC
+          </Text>
+        </div>
 
-        <SideNavigationContent>
-          <SideNavigationGroup>
-            <SideNavigationGroupLabel>회비 관리</SideNavigationGroupLabel>
-            {NAV_ITEMS.map(({ key, label, icon }) => (
-              <SideNavigationItem key={key} current={activeTab === key} onClick={() => setActiveTab(key)}>
-                <SideNavigationItemPrefixIcon svg={icon} />
-                <SideNavigationItemLabel>{label}</SideNavigationItemLabel>
-              </SideNavigationItem>
-            ))}
-          </SideNavigationGroup>
-        </SideNavigationContent>
+        <nav className="sidebar-nav" aria-label="주 메뉴">
+          <Text textStyle="t2Bold" color="fg.neutralMuted" className="sidebar-group-label">
+            회비 관리
+          </Text>
+          {NAV_ITEMS.map(({ key, label, icon }) => (
+            <button
+              key={key}
+              type="button"
+              className="sidebar-nav-item"
+              data-active={activeTab === key}
+              onClick={() => setActiveTab(key)}
+            >
+              <span className="sidebar-nav-icon">{icon}</span>
+              <span className="sidebar-nav-label">{label}</span>
+            </button>
+          ))}
+        </nav>
 
-        <SideNavigationFooter>
-          <Box px="x1">
-            <Text textStyle="t3Regular" color="fg.neutralMuted">
-              총무 전용 대시보드
-            </Text>
-          </Box>
-        </SideNavigationFooter>
-      </SideNavigationRoot>
+        <div className="sidebar-footer">
+          <Text textStyle="t2Regular" color="fg.neutralMuted">
+            총무 전용 대시보드
+          </Text>
+        </div>
+      </aside>
 
-      <SideNavigationInset>
+      <main className="app-main">
         <div className="page-area">
           {activeTab === "home" && (
             <Home
@@ -140,8 +127,8 @@ function App() {
           )}
           {activeTab === "report" && <Report transactions={transactions} members={members} />}
         </div>
-      </SideNavigationInset>
-    </SideNavigationProvider>
+      </main>
+    </div>
   );
 }
 

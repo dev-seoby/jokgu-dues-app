@@ -1,53 +1,58 @@
-/** 최소한의 라인 아이콘 모음 (외부 아이콘 패키지 의존 없이 직접 구성) */
+import type { SVGProps } from "react";
 
-const common = {
+const base: SVGProps<SVGSVGElement> = {
+  width: 20,
+  height: 20,
+  viewBox: "0 0 24 24",
   fill: "none",
   stroke: "currentColor",
-  strokeWidth: 1.8,
-  strokeLinecap: "round" as const,
-  strokeLinejoin: "round" as const,
-  viewBox: "0 0 24 24",
+  strokeWidth: 1.7,
+  strokeLinecap: "round",
+  strokeLinejoin: "round",
 };
 
 export const HomeIcon = () => (
-  <svg {...common}>
-    <path d="M4 11.5 12 4l8 7.5" />
-    <path d="M6 10v9h12v-9" />
+  <svg {...base}>
+    <path d="M4 11.2 12 4.5l8 6.7" />
+    <path d="M6 9.8V19a1 1 0 0 0 1 1h3.2v-4.6a1.8 1.8 0 0 1 1.8-1.8v0a1.8 1.8 0 0 1 1.8 1.8V20H17a1 1 0 0 0 1-1V9.8" />
   </svg>
 );
 
 export const TransactionIcon = () => (
-  <svg {...common}>
-    <path d="M4 8h13l-3-3" />
-    <path d="M20 16H7l3 3" />
+  <svg {...base}>
+    <path d="M4 8.5h12.5" />
+    <path d="M13.5 5 16.8 8.3 13.5 11.6" />
+    <path d="M20 15.5H7.5" />
+    <path d="M10.5 12.4 7.2 15.7 10.5 19" />
   </svg>
 );
 
 export const MembersIcon = () => (
-  <svg {...common}>
-    <circle cx="9" cy="8" r="3" />
-    <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" />
-    <path d="M16 6.2c1.2.4 2 1.5 2 2.8s-.8 2.4-2 2.8" />
-    <path d="M21 20c0-2.6-1.7-4.8-4-5.6" />
+  <svg {...base}>
+    <circle cx="9.5" cy="8" r="2.9" />
+    <path d="M3.6 19.4c0-3.3 2.6-5.6 5.9-5.6s5.9 2.3 5.9 5.6" />
+    <path d="M15.8 6.2c1.2.3 2.1 1.4 2.1 2.7 0 1.3-.9 2.4-2.1 2.7" />
+    <path d="M20.4 19.4c0-2.7-1.6-4.8-3.8-5.5" />
   </svg>
 );
 
 export const ReportIcon = () => (
-  <svg {...common}>
-    <path d="M5 20V10" />
-    <path d="M12 20V4" />
-    <path d="M19 20v-7" />
+  <svg {...base}>
+    <rect x="4" y="4.5" width="16" height="15" rx="2.2" />
+    <path d="M8 15.2V12" />
+    <path d="M12 15.2V9" />
+    <path d="M16 15.2v-3.6" />
   </svg>
 );
 
 export const PlusIcon = () => (
-  <svg {...common}>
+  <svg {...base} width={18} height={18}>
     <path d="M12 5v14M5 12h14" />
   </svg>
 );
 
 export const SearchIcon = () => (
-  <svg {...common}>
+  <svg {...base} width={18} height={18}>
     <circle cx="11" cy="11" r="7" />
     <path d="m20 20-3.5-3.5" />
   </svg>
