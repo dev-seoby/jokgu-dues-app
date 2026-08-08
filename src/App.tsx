@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Box, Text } from "@seed-design/react";
 import { HomeIcon, TransactionIcon, MembersIcon, ReportIcon } from "./components/icons";
+import { TopBar } from "./components/TopBar";
 import { Home } from "./screens/Home";
 import { Transactions } from "./screens/Transactions";
 import { Members } from "./screens/Members";
@@ -72,6 +73,8 @@ function App() {
     setMembers((prev) => prev.filter((m) => m.id !== memberId));
   };
 
+  const activeLabel = NAV_ITEMS.find((item) => item.key === activeTab)?.label ?? "";
+
   return (
     <div className="app-shell">
       <aside className="app-sidebar">
@@ -108,6 +111,7 @@ function App() {
       </aside>
 
       <main className="app-main">
+        <TopBar label={activeLabel} />
         <div className="page-area">
           {activeTab === "home" && (
             <Home

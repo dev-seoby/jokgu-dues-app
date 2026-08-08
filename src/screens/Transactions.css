@@ -34,6 +34,11 @@
 
 .tx-table-row {
   border-top: 1px solid var(--seed-color-stroke-neutral-muted, #f0f0f0);
+  transition: background-color 120ms;
+}
+
+.tx-table-row:hover {
+  background: var(--seed-color-bg-transparent-pressed, rgba(0, 0, 0, 0.02));
 }
 
 .tx-col-amount {

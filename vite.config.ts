@@ -3,5 +3,5 @@ import { defineConfig } from "vite";
 import { seedDesignPlugin } from "@seed-design/vite-plugin";
 
 export default defineConfig({
-  plugins: [react(), seedDesignPlugin()],
+  plugins: [react(), seedDesignPlugin({ colorMode: "dark-only" })],
 });

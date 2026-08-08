@@ -1,0 +1,39 @@
+/*
+ * 브랜드 컬러 오버라이드: Seed Design 기본 브랜드 컬러(당근 orange)를
+ * 하루FC 서비스의 브랜드 컬러(블루)로 재정의.
+ * Seed의 CSS 변수 계층 구조를 그대로 활용 — carrot 팔레트 토큰만 교체하면
+ * fg.brand / bg.brand-solid / stroke.brand-* 등 모든 파생 토큰이 자동으로 따라옴.
+ * 선택자는 @seed-design/css/base.css 의 라이트·다크 모드 선택자와 동일하게 맞춰
+ * (동일 우선순위 + import 순서상 나중에 로드되어) 오버라이드가 적용되도록 함.
+ */
+
+:root,
+:root[data-seed-color-mode="system"][data-seed-user-color-scheme="light"],
+:root[data-seed-color-mode="light-only"],
+:root [data-seed-color-mode="light-only"] {
+  --seed-color-palette-carrot-100: #eaf2ff;
+  --seed-color-palette-carrot-200: #d6e7ff;
+  --seed-color-palette-carrot-300: #adc9ff;
+  --seed-color-palette-carrot-400: #7ba7ff;
+  --seed-color-palette-carrot-500: #4c85fb;
+  --seed-color-palette-carrot-600: #3182f6;
+  --seed-color-palette-carrot-700: #1b64da;
+  --seed-color-palette-carrot-800: #1550b0;
+  --seed-color-palette-carrot-900: #0f3b80;
+  --seed-color-palette-carrot-1000: #082550;
+}
+
+:root[data-seed-color-mode="system"][data-seed-user-color-scheme="dark"],
+:root[data-seed-color-mode="dark-only"],
+:root [data-seed-color-mode="dark-only"] {
+  --seed-color-palette-carrot-100: #13233d;
+  --seed-color-palette-carrot-200: #1a2f52;
+  --seed-color-palette-carrot-300: #1f3f6e;
+  --seed-color-palette-carrot-400: #26518f;
+  --seed-color-palette-carrot-500: #2f6bc4;
+  --seed-color-palette-carrot-600: #3182f6;
+  --seed-color-palette-carrot-700: #5b9dff;
+  --seed-color-palette-carrot-800: #8fbcff;
+  --seed-color-palette-carrot-900: #c3dcff;
+  --seed-color-palette-carrot-1000: #eaf2ff;
+}
