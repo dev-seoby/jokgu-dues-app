@@ -7,6 +7,7 @@ import { Transactions } from "./screens/Transactions";
 import { Members } from "./screens/Members";
 import { Report } from "./screens/Report";
 import { MOCK_MEMBERS, MOCK_TRANSACTIONS, type Member, type Transaction } from "./data/mock";
+import { usePersistentState } from "./hooks/usePersistentState";
 import "./App.css";
 
 export type TabKey = "home" | "transactions" | "members" | "report";
@@ -22,11 +23,21 @@ let txSeq = 1000;
 
 function App() {
   const [activeTab, setActiveTab] = useState<TabKey>("home");
-  const [transactions, setTransactions] = useState<Transaction[]>(MOCK_TRANSACTIONS);
-  const [members, setMembers] = useState<Member[]>(MOCK_MEMBERS);
+  const [transactions, setTransactions] = usePersistentState<Transaction[]>(
+    "transactions",
+    MOCK_TRANSACTIONS,
+  );
+  const [members, setMembers] = usePersistentState<Member[]>("members", MOCK_MEMBERS);
 
   const handleAddTransaction = (tx: Omit<Transaction, "id">) => {
     setTransactions((prev) => [...prev, { ...tx, id: `tx-${++txSeq}` }]);
+  };
+
+  const handleImportTransactions = (txs: Omit<Transaction, "id">[]) => {
+    setTransactions((prev) => [
+      ...prev,
+      ...txs.map((tx) => ({ ...tx, id: `tx-${++txSeq}` })),
+    ]);
   };
 
   const handleToggleMonth = (memberId: string, month: number) => {
@@ -132,7 +143,11 @@ function App() {
             />
           )}
           {activeTab === "transactions" && (
-            <Transactions transactions={transactions} onAddTransaction={handleAddTransaction} />
+            <Transactions
+              transactions={transactions}
+              onAddTransaction={handleAddTransaction}
+              onImportTransactions={handleImportTransactions}
+            />
           )}
           {activeTab === "members" && (
             <Members

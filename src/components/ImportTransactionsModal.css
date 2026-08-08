@@ -1,0 +1,74 @@
+.import-modal-sheet {
+  max-width: 720px;
+}
+
+.import-modal-body {
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.import-dropzone {
+  padding: 32px 18px;
+}
+
+.import-help-text {
+  line-height: 1.5;
+}
+
+.import-warning {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.import-summary-row {
+  margin-bottom: 4px;
+}
+
+.import-table {
+  border: 1px solid var(--seed-color-stroke-neutral-muted, #eef0f2);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.import-table-head,
+.import-table-row {
+  display: grid;
+  grid-template-columns: 24px 132px 76px 1fr 110px 1.4fr;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 12px;
+}
+
+.import-table-head {
+  background: var(--seed-color-bg-neutral-weak, #f7f7f8);
+  font-size: var(--seed-font-size-t1, 12px);
+  color: var(--seed-color-fg-neutralMuted, #7c8288);
+}
+
+.import-table-row {
+  border-top: 1px solid var(--seed-color-stroke-neutral-muted, #eef0f2);
+}
+
+.import-table-row.is-duplicate {
+  background: var(--seed-color-bg-neutral-weak, #f7f7f8);
+  opacity: 0.75;
+}
+
+.import-cell-input {
+  height: 34px;
+  padding: 0 8px;
+  font-size: var(--seed-font-size-t1, 12px);
+}
+
+.import-cell-amount {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 640px) {
+  .import-table-head,
+  .import-table-row {
+    grid-template-columns: 20px 110px 64px 1fr 90px 1fr;
+    font-size: 11px;
+  }
+}

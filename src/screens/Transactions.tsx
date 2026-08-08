@@ -3,6 +3,7 @@ import { ActionButton, HStack, Text, TextField } from "@seed-design/react";
 import type { Transaction, TransactionType } from "../data/mock";
 import { won } from "../data/mock";
 import { AddTransactionModal } from "../components/AddTransactionModal";
+import { ImportTransactionsModal } from "../components/ImportTransactionsModal";
 import { PageHeader } from "../components/PageHeader";
 import { SearchIcon } from "../components/icons";
 import "./Transactions.css";
@@ -14,11 +15,14 @@ const dateLabel = (iso: string) => iso.slice(2).replace(/-/g, ".");
 export function Transactions({
   transactions,
   onAddTransaction,
+  onImportTransactions,
 }: {
   transactions: Transaction[];
   onAddTransaction: (tx: Omit<Transaction, "id">) => void;
+  onImportTransactions: (txs: Omit<Transaction, "id">[]) => void;
 }) {
   const [modalType, setModalType] = useState<"income" | "expense" | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
   const [filter, setFilter] = useState<FilterType>("all");
   const [keyword, setKeyword] = useState("");
 
@@ -42,6 +46,9 @@ export function Transactions({
         subtitle="입출금 내역을 조회하고 새 거래를 등록하세요"
         action={
           <HStack gap="x2">
+            <ActionButton variant="ghost" size="medium" onClick={() => setImportOpen(true)}>
+              엑셀/CSV 업로드
+            </ActionButton>
             <ActionButton variant="neutralOutline" size="medium" onClick={() => setModalType("income")}>
               + 입금 추가
             </ActionButton>
@@ -133,6 +140,14 @@ export function Transactions({
           initialType={modalType}
           onClose={() => setModalType(null)}
           onSubmit={onAddTransaction}
+        />
+      )}
+
+      {importOpen && (
+        <ImportTransactionsModal
+          existingTransactions={transactions}
+          onClose={() => setImportOpen(false)}
+          onImport={onImportTransactions}
         />
       )}
     </>
