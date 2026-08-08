@@ -13,6 +13,7 @@ export function Members({
   onAddMember,
   onToggleResting,
   onDeleteMember,
+  onTogglePaymentType,
 }: {
   members: Member[];
   onToggleMonth: (memberId: string, month: number) => void;
@@ -20,6 +21,7 @@ export function Members({
   onAddMember: (name: string) => void;
   onToggleResting: (memberId: string) => void;
   onDeleteMember: (memberId: string) => void;
+  onTogglePaymentType: (memberId: string) => void;
 }) {
   const [keyword, setKeyword] = useState("");
   const [newName, setNewName] = useState("");
@@ -136,9 +138,13 @@ export function Members({
                   <Icon svg={<CloseIcon />} />
                 </ActionButton>
               </div>
-              <Text textStyle="t3Regular" color="fg.neutralMuted">
+              <ActionButton
+                size="xsmall"
+                variant={m.paymentType === "annual_lump" ? "brandSolid" : "neutralOutline"}
+                onClick={() => onTogglePaymentType(m.id)}
+              >
                 {m.paymentType === "annual_lump" ? "연납" : "월납"}
-              </Text>
+              </ActionButton>
               <ActionButton
                 size="xsmall"
                 variant={resting ? "neutralOutline" : "neutralWeak"}

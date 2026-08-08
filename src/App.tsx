@@ -13,7 +13,7 @@ export type TabKey = "home" | "transactions" | "members" | "report";
 
 const NAV_ITEMS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
   { key: "home", label: "홈", icon: <HomeIcon /> },
-  { key: "transactions", label: "거래", icon: <TransactionIcon /> },
+  { key: "transactions", label: "거래 내역", icon: <TransactionIcon /> },
   { key: "members", label: "회원관리", icon: <MembersIcon /> },
   { key: "report", label: "리포트", icon: <ReportIcon /> },
 ];
@@ -71,6 +71,16 @@ function App() {
 
   const handleDeleteMember = (memberId: string) => {
     setMembers((prev) => prev.filter((m) => m.id !== memberId));
+  };
+
+  const handleTogglePaymentType = (memberId: string) => {
+    setMembers((prev) =>
+      prev.map((m) =>
+        m.id !== memberId
+          ? m
+          : { ...m, paymentType: m.paymentType === "annual_lump" ? "monthly" : "annual_lump" },
+      ),
+    );
   };
 
   const activeLabel = NAV_ITEMS.find((item) => item.key === activeTab)?.label ?? "";
@@ -132,6 +142,7 @@ function App() {
               onAddMember={handleAddMember}
               onToggleResting={handleToggleResting}
               onDeleteMember={handleDeleteMember}
+              onTogglePaymentType={handleTogglePaymentType}
             />
           )}
           {activeTab === "report" && <Report transactions={transactions} members={members} />}
