@@ -1,13 +1,15 @@
-import { useState } from "react";
-import { Box, Text } from "@seed-design/react";
+import { useEffect, useState } from "react";
+import { ActionButton, Box, Text } from "@seed-design/react";
 import { HomeIcon, TransactionIcon, MembersIcon, ReportIcon } from "./components/icons";
 import { TopBar } from "./components/TopBar";
 import { Home } from "./screens/Home";
 import { Transactions } from "./screens/Transactions";
 import { Members } from "./screens/Members";
 import { Report } from "./screens/Report";
-import { MOCK_MEMBERS, MOCK_TRANSACTIONS, type Member, type Transaction } from "./data/mock";
-import { usePersistentState } from "./hooks/usePersistentState";
+import { Login } from "./screens/Login";
+import type { Member, Transaction } from "./data/mock";
+import { useAuth } from "./hooks/useAuth";
+import * as api from "./lib/api";
 import "./App.css";
 
 export type TabKey = "home" | "transactions" | "members" | "report";
@@ -19,43 +21,78 @@ const NAV_ITEMS: { key: TabKey; label: string; icon: React.ReactNode }[] = [
   { key: "report", label: "리포트", icon: <ReportIcon /> },
 ];
 
-let txSeq = 1000;
-
 function App() {
+  const { isAuthenticated, loading: authLoading, session, signOut } = useAuth();
+
   const [activeTab, setActiveTab] = useState<TabKey>("home");
-  const [transactions, setTransactions] = usePersistentState<Transaction[]>(
-    "transactions",
-    MOCK_TRANSACTIONS,
-  );
-  const [members, setMembers] = usePersistentState<Member[]>("members", MOCK_MEMBERS);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [members, setMembers] = useState<Member[]>([]);
+  const [dataLoading, setDataLoading] = useState(true);
+  const [dataError, setDataError] = useState<string | null>(null);
 
-  const handleAddTransaction = (tx: Omit<Transaction, "id">) => {
-    setTransactions((prev) => [...prev, { ...tx, id: `tx-${++txSeq}` }]);
+  const loadData = async () => {
+    setDataLoading(true);
+    setDataError(null);
+    try {
+      const [membersData, transactionsData] = await Promise.all([
+        api.fetchMembers(),
+        api.fetchTransactions(),
+      ]);
+      setMembers(membersData);
+      setTransactions(transactionsData);
+    } catch {
+      setDataError("데이터를 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침해주세요.");
+    } finally {
+      setDataLoading(false);
+    }
   };
 
-  const handleImportTransactions = (txs: Omit<Transaction, "id">[]) => {
-    setTransactions((prev) => [
-      ...prev,
-      ...txs.map((tx) => ({ ...tx, id: `tx-${++txSeq}` })),
-    ]);
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadData();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated]);
+
+  const reportMutationError = () => {
+    window.alert("저장에 실패했어요. 잠시 후 다시 시도해주세요.");
+    loadData();
   };
 
-  const handleToggleMonth = (memberId: string, month: number) => {
-    setMembers((prev) =>
-      prev.map((m) =>
-        m.id !== memberId
-          ? m
-          : {
-              ...m,
-              paidMonths: m.paidMonths.includes(month)
-                ? m.paidMonths.filter((mo) => mo !== month)
-                : [...m.paidMonths, month],
-            },
-      ),
-    );
+  const handleAddTransaction = async (tx: Omit<Transaction, "id">) => {
+    try {
+      const created = await api.insertTransaction(tx);
+      setTransactions((prev) => [created, ...prev]);
+    } catch {
+      reportMutationError();
+    }
   };
 
-  const handleBulkSetMonth = (month: number, paid: boolean) => {
+  const handleImportTransactions = async (txs: Omit<Transaction, "id">[]) => {
+    try {
+      const created = await api.insertTransactions(txs);
+      setTransactions((prev) => [...created, ...prev]);
+    } catch {
+      reportMutationError();
+    }
+  };
+
+  const handleToggleMonth = async (memberId: string, month: number) => {
+    const target = members.find((m) => m.id === memberId);
+    if (!target) return;
+    const nextPaidMonths = target.paidMonths.includes(month)
+      ? target.paidMonths.filter((mo) => mo !== month)
+      : [...target.paidMonths, month];
+    setMembers((prev) => prev.map((m) => (m.id === memberId ? { ...m, paidMonths: nextPaidMonths } : m)));
+    try {
+      await api.updateMember(memberId, { paidMonths: nextPaidMonths });
+    } catch {
+      reportMutationError();
+    }
+  };
+
+  const handleBulkSetMonth = async (month: number, paid: boolean) => {
+    const targets = members.filter((m) => m.status === "active");
     setMembers((prev) =>
       prev.map((m) => {
         if (m.status !== "active") return m;
@@ -63,38 +100,72 @@ function App() {
         return { ...m, paidMonths: paid ? [...withoutMonth, month] : withoutMonth };
       }),
     );
+    try {
+      await Promise.all(
+        targets.map((m) => {
+          const withoutMonth = m.paidMonths.filter((mo) => mo !== month);
+          const paidMonths = paid ? [...withoutMonth, month] : withoutMonth;
+          return api.updateMember(m.id, { paidMonths });
+        }),
+      );
+    } catch {
+      reportMutationError();
+    }
   };
 
-  const handleAddMember = (name: string) => {
-    setMembers((prev) => [
-      ...prev,
-      { id: `member-${Date.now()}`, name, status: "active", paymentType: "monthly", paidMonths: [] },
-    ]);
+  const handleAddMember = async (name: string) => {
+    try {
+      const created = await api.insertMember(name);
+      setMembers((prev) => [...prev, created]);
+    } catch {
+      reportMutationError();
+    }
   };
 
-  const handleToggleResting = (memberId: string) => {
-    setMembers((prev) =>
-      prev.map((m) =>
-        m.id !== memberId ? m : { ...m, status: m.status === "resting" ? "active" : "resting" },
-      ),
-    );
+  const handleToggleResting = async (memberId: string) => {
+    const target = members.find((m) => m.id === memberId);
+    if (!target) return;
+    const nextStatus = target.status === "resting" ? "active" : "resting";
+    setMembers((prev) => prev.map((m) => (m.id === memberId ? { ...m, status: nextStatus } : m)));
+    try {
+      await api.updateMember(memberId, { status: nextStatus });
+    } catch {
+      reportMutationError();
+    }
   };
 
-  const handleDeleteMember = (memberId: string) => {
+  const handleDeleteMember = async (memberId: string) => {
+    const prevMembers = members;
     setMembers((prev) => prev.filter((m) => m.id !== memberId));
+    try {
+      await api.deleteMember(memberId);
+    } catch {
+      setMembers(prevMembers);
+      reportMutationError();
+    }
   };
 
-  const handleTogglePaymentType = (memberId: string) => {
-    setMembers((prev) =>
-      prev.map((m) =>
-        m.id !== memberId
-          ? m
-          : { ...m, paymentType: m.paymentType === "annual_lump" ? "monthly" : "annual_lump" },
-      ),
-    );
+  const handleTogglePaymentType = async (memberId: string) => {
+    const target = members.find((m) => m.id === memberId);
+    if (!target) return;
+    const nextPaymentType = target.paymentType === "annual_lump" ? "monthly" : "annual_lump";
+    setMembers((prev) => prev.map((m) => (m.id === memberId ? { ...m, paymentType: nextPaymentType } : m)));
+    try {
+      await api.updateMember(memberId, { paymentType: nextPaymentType });
+    } catch {
+      reportMutationError();
+    }
   };
 
   const activeLabel = NAV_ITEMS.find((item) => item.key === activeTab)?.label ?? "";
+
+  if (authLoading) {
+    return <div className="app-loading-screen" />;
+  }
+
+  if (!isAuthenticated) {
+    return <Login />;
+  }
 
   return (
     <div className="app-shell">
@@ -125,42 +196,61 @@ function App() {
         </nav>
 
         <div className="sidebar-footer">
-          <Text textStyle="t2Regular" color="fg.neutralMuted">
-            총무 전용 대시보드
+          <Text textStyle="t2Regular" color="fg.neutralMuted" className="sidebar-footer-email">
+            {session?.user?.email ?? "총무 전용 대시보드"}
           </Text>
+          <ActionButton size="small" variant="ghost" onClick={signOut}>
+            로그아웃
+          </ActionButton>
         </div>
       </aside>
 
       <main className="app-main">
         <TopBar label={activeLabel} />
         <div className="page-area">
-          {activeTab === "home" && (
-            <Home
-              transactions={transactions}
-              members={members}
-              onAddTransaction={handleAddTransaction}
-              onNavigate={setActiveTab}
-            />
+          {dataError && (
+            <div className="data-error-banner">
+              <Text textStyle="t3Medium" color="fg.critical">
+                {dataError}
+              </Text>
+              <ActionButton size="small" variant="neutralOutline" onClick={loadData}>
+                다시 시도
+              </ActionButton>
+            </div>
           )}
-          {activeTab === "transactions" && (
-            <Transactions
-              transactions={transactions}
-              onAddTransaction={handleAddTransaction}
-              onImportTransactions={handleImportTransactions}
-            />
+          {dataLoading ? (
+            <div className="app-loading-screen" />
+          ) : (
+            <>
+              {activeTab === "home" && (
+                <Home
+                  transactions={transactions}
+                  members={members}
+                  onAddTransaction={handleAddTransaction}
+                  onNavigate={setActiveTab}
+                />
+              )}
+              {activeTab === "transactions" && (
+                <Transactions
+                  transactions={transactions}
+                  onAddTransaction={handleAddTransaction}
+                  onImportTransactions={handleImportTransactions}
+                />
+              )}
+              {activeTab === "members" && (
+                <Members
+                  members={members}
+                  onToggleMonth={handleToggleMonth}
+                  onBulkSetMonth={handleBulkSetMonth}
+                  onAddMember={handleAddMember}
+                  onToggleResting={handleToggleResting}
+                  onDeleteMember={handleDeleteMember}
+                  onTogglePaymentType={handleTogglePaymentType}
+                />
+              )}
+              {activeTab === "report" && <Report transactions={transactions} members={members} />}
+            </>
           )}
-          {activeTab === "members" && (
-            <Members
-              members={members}
-              onToggleMonth={handleToggleMonth}
-              onBulkSetMonth={handleBulkSetMonth}
-              onAddMember={handleAddMember}
-              onToggleResting={handleToggleResting}
-              onDeleteMember={handleDeleteMember}
-              onTogglePaymentType={handleTogglePaymentType}
-            />
-          )}
-          {activeTab === "report" && <Report transactions={transactions} members={members} />}
         </div>
       </main>
     </div>

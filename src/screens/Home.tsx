@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { ActionButton, HStack, Text, VStack } from "@seed-design/react";
 import type { Member, Transaction } from "../data/mock";
-import { won, isPaid, CURRENT_MONTH } from "../data/mock";
+import { won, isPaid, CURRENT_MONTH, CURRENT_YEAR } from "../data/mock";
 import { AddTransactionModal } from "../components/AddTransactionModal";
 import { PageHeader } from "../components/PageHeader";
 import type { TabKey } from "../App";
@@ -28,7 +28,7 @@ export function Home({
   );
 
   const thisMonth = useMemo(
-    () => transactions.filter((t) => t.date.startsWith(`2026-${String(CURRENT_MONTH).padStart(2, "0")}`)),
+    () => transactions.filter((t) => t.date.startsWith(`${CURRENT_YEAR}-${String(CURRENT_MONTH).padStart(2, "0")}`)),
     [transactions],
   );
   const monthIncome = thisMonth.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);

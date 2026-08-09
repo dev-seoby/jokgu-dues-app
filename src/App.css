@@ -115,6 +115,53 @@
   padding: 16px 20px;
   border-top: 1px solid var(--seed-color-stroke-neutral-muted, #eef0f2);
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar-footer-email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- ë¡ë© / ìë¬ ìí ---------- */
+
+.app-loading-screen {
+  min-height: 40vh;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.app-loading-screen::after {
+  content: "";
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid var(--seed-color-stroke-neutral-muted, #d9d9d9);
+  border-top-color: var(--seed-color-bg-brand-solid, #3182f6);
+  animation: app-loading-spin 700ms linear infinite;
+}
+
+@keyframes app-loading-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.data-error-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border-radius: 10px;
+  background: var(--seed-color-bg-critical-weak, #fdeeee);
+  border: 1px solid var(--seed-color-stroke-critical-muted, #f6c9c9);
 }
 
 /* ---------- 메인 영역 ---------- */
