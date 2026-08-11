@@ -8,6 +8,7 @@ import {
   markDuplicates,
   PasswordRequiredError,
   WrongPasswordError,
+  DecryptFailedError,
   type StagedTransactionRow,
 } from "../utils/importTransactions";
 import "./ImportTransactionsModal.css";
@@ -63,6 +64,12 @@ export function ImportTransactionsModal({
         setNeedsPassword(true);
         setPendingFile(file);
         setParseError("비밀번호가 올바르지 않아요. 다시 입력해주세요.");
+      } else if (err instanceof DecryptFailedError) {
+        // 비밀번호는 맞을 수 있지만 기술적으로 열지 못한 경우 — 원인을 그대로 보여줘서
+        // 총무가 화면 문구를 그대로 전달하면 바로 진단할 수 있게 함
+        setNeedsPassword(true);
+        setPendingFile(file);
+        setParseError(err.message);
       } else {
         setParseError("파일을 읽는 중 문제가 발생했어요. 엑셀(.xlsx) 또는 CSV 파일인지 확인해주세요.");
         setRows(null);

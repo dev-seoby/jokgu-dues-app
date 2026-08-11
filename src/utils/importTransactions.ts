@@ -53,6 +53,14 @@ export class WrongPasswordError extends Error {
   }
 }
 
+/** 비밀번호는 맞았을 가능성이 있지만, 복호화 자체가 기술적으로 실패했을 때 던지는 에러 */
+export class DecryptFailedError extends Error {
+  constructor(detail: string) {
+    super(`파일을 여는 중 문제가 발생했어요 (${detail})`);
+    this.name = "DecryptFailedError";
+  }
+}
+
 const HEADER_ALIASES = {
   date: ["거래일시", "거래일자", "거래일", "이체일시", "날짜", "일자"],
   incomeAmount: ["입금액", "입금", "들어온금액", "입금(원)"],
@@ -151,9 +159,17 @@ export async function parseTransactionFile(file: File, password?: string): Promi
         throw new PasswordRequiredError();
       }
       try {
-        buffer = await officeCrypto.decrypt(buffer, { password });
-      } catch {
-        throw new WrongPasswordError();
+        buffer = await officeCrypto.decrypt(buffer, { password: password.trim() });
+      } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        // eslint-disable-next-line no-console
+        console.error("[거래내역 파일 복호화 실패]", err);
+        if (message === "The password is incorrect") {
+          throw new WrongPasswordError();
+        }
+        // 비밀번호 자체는 맞았을 수도 있는, 그 외의 기술적 실패
+        // (지원하지 않는 암호화 방식 등) — 원인을 그대로 노출해 진단할 수 있게 함
+        throw new DecryptFailedError(message);
       }
     }
 
