@@ -130,6 +130,26 @@ export async function insertTransaction(tx: Omit<Transaction, "id">): Promise<Tr
   return toTransaction(data as TransactionRow);
 }
 
+export async function updateTransaction(
+  id: string,
+  patch: Partial<Omit<Transaction, "id">>,
+): Promise<void> {
+  const dbPatch: Record<string, unknown> = {};
+  if (patch.type !== undefined) dbPatch.type = patch.type;
+  if (patch.category !== undefined) dbPatch.category = patch.category;
+  if (patch.amount !== undefined) dbPatch.amount = patch.amount;
+  if (patch.memo !== undefined) dbPatch.memo = patch.memo;
+  if (patch.date !== undefined) dbPatch.date = patch.date;
+  if (patch.receiptImageUrl !== undefined) dbPatch.receipt_image_url = patch.receiptImageUrl ?? null;
+  const { error } = await supabase.from("transactions").update(dbPatch).eq("id", id);
+  if (error) throw error;
+}
+
+export async function deleteTransaction(id: string): Promise<void> {
+  const { error } = await supabase.from("transactions").delete().eq("id", id);
+  if (error) throw error;
+}
+
 export async function insertTransactions(txs: Omit<Transaction, "id">[]): Promise<Transaction[]> {
   if (txs.length === 0) return [];
   const { data, error } = await supabase

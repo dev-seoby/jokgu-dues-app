@@ -63,3 +63,10 @@ export const CloseIcon = () => (
     <path d="M6 6l12 12M18 6 6 18" />
   </svg>
 );
+
+export const EditIcon = () => (
+  <svg {...base} width={16} height={16}>
+    <path d="M14.5 5.5 18.5 9.5 8 20H4v-4z" />
+    <path d="M13 7 17 11" />
+  </svg>
+);

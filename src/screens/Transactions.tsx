@@ -3,9 +3,10 @@ import { ActionButton, HStack, Text, TextField } from "@seed-design/react";
 import type { Member, Transaction, TransactionType } from "../data/mock";
 import { won } from "../data/mock";
 import { AddTransactionModal } from "../components/AddTransactionModal";
+import { EditTransactionModal } from "../components/EditTransactionModal";
 import { ImportTransactionsModal } from "../components/ImportTransactionsModal";
 import { PageHeader } from "../components/PageHeader";
-import { SearchIcon } from "../components/icons";
+import { EditIcon, SearchIcon } from "../components/icons";
 import "./Transactions.css";
 
 type FilterType = "all" | TransactionType;
@@ -18,17 +19,22 @@ export function Transactions({
   onAddTransaction,
   onImportTransactions,
   onApplyMemberPayments,
+  onUpdateTransaction,
+  onDeleteTransaction,
 }: {
   transactions: Transaction[];
   members: Member[];
   onAddTransaction: (tx: Omit<Transaction, "id">) => void;
   onImportTransactions: (txs: Omit<Transaction, "id">[]) => void;
   onApplyMemberPayments: (updates: { memberId: string; months: number[] }[]) => void;
+  onUpdateTransaction: (id: string, patch: Partial<Omit<Transaction, "id">>) => void;
+  onDeleteTransaction: (id: string) => void;
 }) {
   const [modalType, setModalType] = useState<"income" | "expense" | null>(null);
   const [importOpen, setImportOpen] = useState(false);
   const [filter, setFilter] = useState<FilterType>("all");
   const [keyword, setKeyword] = useState("");
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
   const filtered = useMemo(() => {
     return [...transactions]
@@ -102,7 +108,13 @@ export function Transactions({
           <span className="tx-col-amount">금액</span>
         </div>
         {filtered.map((t) => (
-          <div className="tx-table-row" key={t.id}>
+          <button
+            type="button"
+            className="tx-table-row tx-table-row-editable"
+            key={t.id}
+            onClick={() => setEditingTransaction(t)}
+            aria-label={`${t.date} ${t.category} ${won(t.amount)} 수정`}
+          >
             <Text textStyle="t3Regular" color="fg.neutralMuted">
               {dateLabel(t.date)}
             </Text>
@@ -121,7 +133,10 @@ export function Transactions({
               {t.type === "income" ? "+" : "-"}
               {won(t.amount)}
             </Text>
-          </div>
+            <span className="tx-row-edit-icon" aria-hidden="true">
+              <EditIcon />
+            </span>
+          </button>
         ))}
         {filtered.length === 0 && (
           <div className="tx-empty">
@@ -154,6 +169,15 @@ export function Transactions({
           onClose={() => setImportOpen(false)}
           onImport={onImportTransactions}
           onApplyMemberPayments={onApplyMemberPayments}
+        />
+      )}
+
+      {editingTransaction && (
+        <EditTransactionModal
+          transaction={editingTransaction}
+          onClose={() => setEditingTransaction(null)}
+          onSave={onUpdateTransaction}
+          onDelete={onDeleteTransaction}
         />
       )}
     </>

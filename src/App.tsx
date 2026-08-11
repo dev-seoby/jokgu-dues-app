@@ -78,6 +78,28 @@ function App() {
     }
   };
 
+  const handleUpdateTransaction = async (id: string, patch: Partial<Omit<Transaction, "id">>) => {
+    const prevTransactions = transactions;
+    setTransactions((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+    try {
+      await api.updateTransaction(id, patch);
+    } catch {
+      setTransactions(prevTransactions);
+      reportMutationError();
+    }
+  };
+
+  const handleDeleteTransaction = async (id: string) => {
+    const prevTransactions = transactions;
+    setTransactions((prev) => prev.filter((t) => t.id !== id));
+    try {
+      await api.deleteTransaction(id);
+    } catch {
+      setTransactions(prevTransactions);
+      reportMutationError();
+    }
+  };
+
   const handleToggleMonth = async (memberId: string, month: number) => {
     const target = members.find((m) => m.id === memberId);
     if (!target) return;
@@ -282,6 +304,8 @@ function App() {
                   onAddTransaction={handleAddTransaction}
                   onImportTransactions={handleImportTransactions}
                   onApplyMemberPayments={handleApplyMemberPayments}
+                  onUpdateTransaction={handleUpdateTransaction}
+                  onDeleteTransaction={handleDeleteTransaction}
                 />
               )}
               {activeTab === "members" && (
