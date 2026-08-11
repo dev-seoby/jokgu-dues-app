@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { ActionButton, HStack, Text, TextField } from "@seed-design/react";
-import type { Transaction, TransactionType } from "../data/mock";
+import type { Member, Transaction, TransactionType } from "../data/mock";
 import { won } from "../data/mock";
 import { AddTransactionModal } from "../components/AddTransactionModal";
 import { ImportTransactionsModal } from "../components/ImportTransactionsModal";
@@ -14,12 +14,16 @@ const dateLabel = (iso: string) => iso.slice(2).replace(/-/g, ".");
 
 export function Transactions({
   transactions,
+  members,
   onAddTransaction,
   onImportTransactions,
+  onApplyMemberPayments,
 }: {
   transactions: Transaction[];
+  members: Member[];
   onAddTransaction: (tx: Omit<Transaction, "id">) => void;
   onImportTransactions: (txs: Omit<Transaction, "id">[]) => void;
+  onApplyMemberPayments: (updates: { memberId: string; months: number[] }[]) => void;
 }) {
   const [modalType, setModalType] = useState<"income" | "expense" | null>(null);
   const [importOpen, setImportOpen] = useState(false);
@@ -146,8 +150,10 @@ export function Transactions({
       {importOpen && (
         <ImportTransactionsModal
           existingTransactions={transactions}
+          members={members}
           onClose={() => setImportOpen(false)}
           onImport={onImportTransactions}
+          onApplyMemberPayments={onApplyMemberPayments}
         />
       )}
     </>

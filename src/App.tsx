@@ -123,6 +123,41 @@ function App() {
     }
   };
 
+  const handleImportMembers = async (
+    newMembers: { name: string; status: Member["status"]; paymentType: Member["paymentType"] }[],
+  ) => {
+    try {
+      const created = await api.insertMembers(newMembers);
+      setMembers((prev) => [...prev, ...created]);
+    } catch {
+      reportMutationError();
+    }
+  };
+
+  /** 거래내역 업로드 시 자동 매칭된 회원 납부월을 실제로 반영 */
+  const handleApplyMemberPayments = async (updates: { memberId: string; months: number[] }[]) => {
+    if (updates.length === 0) return;
+    const nextMembersById = new Map<string, number[]>();
+    setMembers((prev) =>
+      prev.map((m) => {
+        const update = updates.find((u) => u.memberId === m.id);
+        if (!update) return m;
+        const merged = [...new Set([...m.paidMonths, ...update.months])].sort((a, b) => a - b);
+        nextMembersById.set(m.id, merged);
+        return { ...m, paidMonths: merged };
+      }),
+    );
+    try {
+      await Promise.all(
+        [...nextMembersById.entries()].map(([memberId, paidMonths]) =>
+          api.updateMember(memberId, { paidMonths }),
+        ),
+      );
+    } catch {
+      reportMutationError();
+    }
+  };
+
   const handleToggleResting = async (memberId: string) => {
     const target = members.find((m) => m.id === memberId);
     if (!target) return;
@@ -243,8 +278,10 @@ function App() {
               {activeTab === "transactions" && (
                 <Transactions
                   transactions={transactions}
+                  members={members}
                   onAddTransaction={handleAddTransaction}
                   onImportTransactions={handleImportTransactions}
+                  onApplyMemberPayments={handleApplyMemberPayments}
                 />
               )}
               {activeTab === "members" && (
@@ -253,6 +290,7 @@ function App() {
                   onToggleMonth={handleToggleMonth}
                   onBulkSetMonth={handleBulkSetMonth}
                   onAddMember={handleAddMember}
+                  onImportMembers={handleImportMembers}
                   onToggleResting={handleToggleResting}
                   onDeleteMember={handleDeleteMember}
                   onTogglePaymentType={handleTogglePaymentType}

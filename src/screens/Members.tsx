@@ -3,6 +3,7 @@ import { ActionButton, HStack, Icon, Text, TextField } from "@seed-design/react"
 import type { Member } from "../data/mock";
 import { CURRENT_MONTH, isPaid } from "../data/mock";
 import { PageHeader } from "../components/PageHeader";
+import { ImportMembersModal } from "../components/ImportMembersModal";
 import { CloseIcon, SearchIcon } from "../components/icons";
 import "./Members.css";
 
@@ -11,6 +12,7 @@ export function Members({
   onToggleMonth,
   onBulkSetMonth,
   onAddMember,
+  onImportMembers,
   onToggleResting,
   onDeleteMember,
   onTogglePaymentType,
@@ -19,6 +21,7 @@ export function Members({
   onToggleMonth: (memberId: string, month: number) => void;
   onBulkSetMonth: (month: number, paid: boolean) => void;
   onAddMember: (name: string) => void;
+  onImportMembers: (members: { name: string; status: Member["status"]; paymentType: Member["paymentType"] }[]) => void;
   onToggleResting: (memberId: string) => void;
   onDeleteMember: (memberId: string) => void;
   onTogglePaymentType: (memberId: string) => void;
@@ -26,6 +29,7 @@ export function Members({
   const [keyword, setKeyword] = useState("");
   const [newName, setNewName] = useState("");
   const [selectedMonth, setSelectedMonth] = useState(CURRENT_MONTH);
+  const [importOpen, setImportOpen] = useState(false);
 
   const filtered = useMemo(
     () => members.filter((m) => m.name.toLowerCase().includes(keyword.trim().toLowerCase())),
@@ -55,6 +59,9 @@ export function Members({
         subtitle={`활동 회원 ${activeCount}명 · ${selectedMonth}월 납부 ${paidCount}명`}
         action={
           <HStack gap="x2">
+            <ActionButton variant="ghost" size="medium" onClick={() => setImportOpen(true)}>
+              명단 업로드
+            </ActionButton>
             <ActionButton
               variant="neutralOutline"
               size="medium"
@@ -173,6 +180,14 @@ export function Members({
           </div>
         )}
       </div>
+
+      {importOpen && (
+        <ImportMembersModal
+          existingMembers={members}
+          onClose={() => setImportOpen(false)}
+          onImport={onImportMembers}
+        />
+      )}
     </>
   );
 }

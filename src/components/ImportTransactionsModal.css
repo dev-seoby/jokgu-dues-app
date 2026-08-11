@@ -84,3 +84,49 @@
   padding: 0 12px;
   flex: 1;
 }
+
+.payment-match-section {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--seed-color-stroke-neutral-muted, #eef0f2);
+}
+
+.payment-match-title {
+  margin-bottom: 4px;
+}
+
+.payment-match-table {
+  margin-top: 8px;
+  border: 1px solid var(--seed-color-stroke-neutral-muted, #eef0f2);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.payment-match-table-head,
+.payment-match-row {
+  display: grid;
+  grid-template-columns: 1.6fr 130px 110px;
+  gap: 8px;
+  align-items: center;
+  padding: 8px 12px;
+}
+
+.payment-match-table-head {
+  background: var(--seed-color-bg-neutral-weak, #f7f7f8);
+  font-size: var(--seed-font-size-t1, 12px);
+  color: var(--seed-color-fg-neutralMuted, #7c8288);
+}
+
+.payment-match-row {
+  border-top: 1px solid var(--seed-color-stroke-neutral-muted, #eef0f2);
+}
+
+.payment-match-row.is-excluded {
+  opacity: 0.5;
+}
+
+.payment-match-memo {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

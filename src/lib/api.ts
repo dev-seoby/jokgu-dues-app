@@ -72,6 +72,30 @@ export async function insertMember(name: string): Promise<Member> {
   return toMember(data as MemberRow);
 }
 
+export interface NewMemberInput {
+  name: string;
+  status: Member["status"];
+  paymentType: Member["paymentType"];
+}
+
+/** 기존 회원 명단 파일 업로드 시, 여러 명을 한 번에 등록 */
+export async function insertMembers(members: NewMemberInput[]): Promise<Member[]> {
+  if (members.length === 0) return [];
+  const { data, error } = await supabase
+    .from("members")
+    .insert(
+      members.map((m) => ({
+        name: m.name,
+        status: m.status,
+        payment_type: m.paymentType,
+        paid_months: [],
+      })),
+    )
+    .select();
+  if (error) throw error;
+  return (data as MemberRow[]).map(toMember);
+}
+
 export async function updateMember(
   id: string,
   patch: Partial<{ status: Member["status"]; paymentType: Member["paymentType"]; paidMonths: number[] }>,
