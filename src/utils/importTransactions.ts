@@ -78,7 +78,7 @@ function normalizeHeaderCell(cell: unknown): string {
 
 function findHeaderRowIndex(rows: unknown[][]): number {
   const allAliases = Object.values(HEADER_ALIASES).flat();
-  for (let i = 0; i < Math.min(rows.length, 10); i++) {
+  for (let i = 0; i < Math.min(rows.length, 30); i++) {
     const row = rows[i] ?? [];
     const normalized = row.map(normalizeHeaderCell);
     const hits = normalized.filter((cell) => allAliases.some((alias) => cell.includes(alias)));
@@ -191,11 +191,32 @@ export async function parseTransactionFile(file: File, password?: string): Promi
   const colDirection = matchColumn(headerRow, HEADER_ALIASES.directionLabel);
   const colMemo = matchColumn(headerRow, HEADER_ALIASES.memo);
 
+  // 임시 진단 로그 (실제 거래 데이터는 남기지 않고 구조 정보만 출력).
+  // 문제 원인 파악 후 제거 예정.
+  // eslint-disable-next-line no-console
+  console.debug("[importTransactions] 헤더 인식 결과", {
+    headerRecognized,
+    headerIdx,
+    headerRow,
+    colDate,
+    colIncome,
+    colExpense,
+    colUnifiedAmount,
+    colDirection,
+    colMemo,
+    totalDataRows: dataRows.length,
+  });
+
   const rows: StagedTransactionRow[] = [];
   let seq = 0;
+  let skippedEmpty = 0;
+  let skippedNoTypeOrAmount = 0;
 
   for (const row of dataRows) {
-    if (!row || row.every((cell) => cell === "" || cell === undefined || cell === null)) continue;
+    if (!row || row.every((cell) => cell === "" || cell === undefined || cell === null)) {
+      skippedEmpty++;
+      continue;
+    }
 
     let type: TransactionType | null = null;
     let amount = 0;
@@ -222,7 +243,10 @@ export async function parseTransactionFile(file: File, password?: string): Promi
       }
     }
 
-    if (type === null || amount <= 0) continue;
+    if (type === null || amount <= 0) {
+      skippedNoTypeOrAmount++;
+      continue;
+    }
 
     const normalizedDate = colDate !== -1 ? normalizeDate(row[colDate]) : null;
     const memo = colMemo !== -1 ? String(row[colMemo] ?? "").trim() : "";
@@ -239,6 +263,14 @@ export async function parseTransactionFile(file: File, password?: string): Promi
       include: true,
     });
   }
+
+  // eslint-disable-next-line no-console
+  console.debug("[importTransactions] 파싱 결과", {
+    totalDataRows: dataRows.length,
+    skippedEmpty,
+    skippedNoTypeOrAmount,
+    recognizedRows: rows.length,
+  });
 
   return { rows, headerRecognized };
 }
