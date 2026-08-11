@@ -1,0 +1,12 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+
+# SPA 라우팅 대응: 알 수 없는 경로는 index.html로 넘겨서 클라이언트 라우팅이 처리하게 함
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
