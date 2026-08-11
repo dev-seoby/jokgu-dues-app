@@ -126,6 +126,15 @@
   white-space: nowrap;
 }
 
+.sidebar-footer-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.sidebar-footer-actions > * {
+  flex: 1;
+}
+
 /* ---------- ë¡ë© / ìë¬ ìí ---------- */
 
 .app-loading-screen {

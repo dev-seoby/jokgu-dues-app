@@ -10,6 +10,7 @@ import { Login } from "./screens/Login";
 import type { Member, Transaction } from "./data/mock";
 import { useAuth } from "./hooks/useAuth";
 import * as api from "./lib/api";
+import { exportBackup } from "./lib/exportBackup";
 import "./App.css";
 
 export type TabKey = "home" | "transactions" | "members" | "report";
@@ -199,9 +200,18 @@ function App() {
           <Text textStyle="t2Regular" color="fg.neutralMuted" className="sidebar-footer-email">
             {session?.user?.email ?? "총무 전용 대시보드"}
           </Text>
-          <ActionButton size="small" variant="ghost" onClick={signOut}>
-            로그아웃
-          </ActionButton>
+          <div className="sidebar-footer-actions">
+            <ActionButton
+              size="small"
+              variant="ghost"
+              onClick={() => exportBackup(members, transactions)}
+            >
+              내보내기
+            </ActionButton>
+            <ActionButton size="small" variant="ghost" onClick={signOut}>
+              로그아웃
+            </ActionButton>
+          </div>
         </div>
       </aside>
 
