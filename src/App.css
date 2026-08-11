@@ -30,8 +30,7 @@
 .team-logo-slot {
   width: 34px;
   height: 34px;
-  border-radius: 9px;
-  object-fit: cover;
+  object-fit: contain;
   flex-shrink: 0;
 }
 
