@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { ActionButton, Box, Text } from "@seed-design/react";
+import { ActionButton, Text } from "@seed-design/react";
 import { HomeIcon, TransactionIcon, MembersIcon, ReportIcon } from "./components/icons";
 import { TopBar } from "./components/TopBar";
 import { Home } from "./screens/Home";
@@ -172,7 +172,7 @@ function App() {
     <div className="app-shell">
       <aside className="app-sidebar">
         <div className="sidebar-header">
-          <Box className="team-logo-slot" aria-hidden="true" />
+          <img src="/team-logo.png" alt="하루FC 로고" className="team-logo-slot" />
           <Text textStyle="t6Bold" color="fg.neutral" className="team-name">
             하루FC
           </Text>
