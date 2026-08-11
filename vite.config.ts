@@ -2,9 +2,20 @@ import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
 import { seedDesignPlugin } from "@seed-design/vite-plugin";
 import { VitePWA } from "vite-plugin-pwa";
+import { nodePolyfills } from "vite-plugin-node-polyfills";
 
 export default defineConfig({
   plugins: [
+    // officecrypto-tool(암호화된 엑셀 복호화)이 내부적으로 Node의
+    // crypto/buffer/stream/events API를 사용하므로 브라우저용 폴리필을 주입.
+    nodePolyfills({
+      include: ["crypto", "buffer", "stream", "events", "timers"],
+      globals: {
+        Buffer: true,
+        global: true,
+        process: true,
+      },
+    }),
     react(),
     seedDesignPlugin({ colorMode: "dark-only" }),
     VitePWA({

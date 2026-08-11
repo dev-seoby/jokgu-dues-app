@@ -13,8 +13,11 @@
     "@seed-design/css": "^2.3.0",
     "@seed-design/react": "^2.1.0",
     "@supabase/supabase-js": "^2.112.2",
+    "buffer": "^6.0.3",
+    "officecrypto-tool": "^0.0.19",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "vite-plugin-node-polyfills": "^0.28.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {

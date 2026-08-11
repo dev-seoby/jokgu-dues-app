@@ -1,4 +1,6 @@
 import * as XLSX from "xlsx";
+import * as officeCrypto from "officecrypto-tool";
+import { Buffer } from "buffer";
 import type { Transaction, TransactionType } from "../data/mock";
 
 /**
@@ -8,6 +10,10 @@ import type { Transaction, TransactionType } from "../data/mock";
  * 컬럼명을 유연하게 매칭한다 (은행마다 헤더 문구가 조금씩 다름).
  * 100% 자동 인식을 보장하지 않으므로, 파싱 결과는 항상 "미리보기 후 확인/수정"
  * 화면(ImportTransactionsModal)을 거쳐 총무가 최종 확인하고 가져오기 하도록 설계함.
+ *
+ * 은행에서 내보낸 파일은 비밀번호로 암호화되어 있는 경우가 많다 (MS Office
+ * "암호 설정" 방식). 이 경우 officecrypto-tool로 비밀번호를 받아 복호화한 뒤
+ * 같은 파싱 로직을 태운다.
  */
 
 export interface StagedTransactionRow {
@@ -29,6 +35,22 @@ export interface ParseResult {
   rows: StagedTransactionRow[];
   /** 헤더 행을 못 찾아 컬럼을 추정으로 처리한 경우 경고 표시용 */
   headerRecognized: boolean;
+}
+
+/** 비밀번호로 암호화된 파일인데 비밀번호가 아직 없을 때 던지는 에러 */
+export class PasswordRequiredError extends Error {
+  constructor() {
+    super("이 파일은 비밀번호로 잠겨 있어요.");
+    this.name = "PasswordRequiredError";
+  }
+}
+
+/** 비밀번호를 입력했지만 틀렸을 때 던지는 에러 */
+export class WrongPasswordError extends Error {
+  constructor() {
+    super("비밀번호가 올바르지 않아요.");
+    this.name = "WrongPasswordError";
+  }
 }
 
 const HEADER_ALIASES = {
@@ -105,7 +127,15 @@ function toNumber(raw: unknown): number {
 
 const todayISO = () => new Date().toISOString().slice(0, 10);
 
-export async function parseTransactionFile(file: File): Promise<ParseResult> {
+/**
+ * 엑셀/CSV 파일을 파싱한다.
+ *
+ * 파일이 비밀번호로 암호화되어 있으면:
+ * - password가 없으면 PasswordRequiredError를 던진다 (UI에서 비밀번호 입력창 표시)
+ * - password가 틀리면 WrongPasswordError를 던진다 (UI에서 재입력 유도)
+ * - password가 맞으면 복호화 후 정상적으로 파싱을 진행한다
+ */
+export async function parseTransactionFile(file: File, password?: string): Promise<ParseResult> {
   const isCsv = /\.csv$/i.test(file.name);
   let workbook: XLSX.WorkBook;
 
@@ -113,8 +143,21 @@ export async function parseTransactionFile(file: File): Promise<ParseResult> {
     const text = await file.text();
     workbook = XLSX.read(text, { type: "string" });
   } else {
-    const buffer = await file.arrayBuffer();
-    workbook = XLSX.read(buffer, { type: "array" });
+    const arrayBuffer = await file.arrayBuffer();
+    let buffer: Buffer = Buffer.from(arrayBuffer);
+
+    if (officeCrypto.isEncrypted(buffer)) {
+      if (!password) {
+        throw new PasswordRequiredError();
+      }
+      try {
+        buffer = await officeCrypto.decrypt(buffer, { password });
+      } catch {
+        throw new WrongPasswordError();
+      }
+    }
+
+    workbook = XLSX.read(buffer, { type: "buffer" });
   }
 
   const sheet = workbook.Sheets[workbook.SheetNames[0]];

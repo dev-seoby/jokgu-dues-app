@@ -72,3 +72,15 @@
     font-size: 11px;
   }
 }
+
+.import-password-box {
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--seed-color-bg-neutral-weak, #f7f7f8);
+}
+
+.import-password-input {
+  height: 40px;
+  padding: 0 12px;
+  flex: 1;
+}
