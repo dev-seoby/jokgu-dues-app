@@ -4,7 +4,7 @@ import type { Member, Transaction } from "../data/mock";
 /**
  * Supabase members / transactions 테이블 CRUD + snake_case <-> camelCase 매핑
  *
- * DB 컬럼은 payment_type / paid_months / receipt_image_url 처럼 snake_case인 반면
+ * DB 컬럼은 payment_type / paid_year_months / receipt_image_url 처럼 snake_case인 반면
  * 앱 내부 타입(Member/Transaction)은 카멜케이스라 이 파일에서 변환을 전담함.
  */
 
@@ -13,7 +13,7 @@ interface MemberRow {
   name: string;
   status: string;
   payment_type: string;
-  paid_months: number[];
+  paid_year_months: string[];
 }
 
 interface TransactionRow {
@@ -31,7 +31,7 @@ const toMember = (row: MemberRow): Member => ({
   name: row.name,
   status: row.status as Member["status"],
   paymentType: row.payment_type as Member["paymentType"],
-  paidMonths: row.paid_months ?? [],
+  paidYearMonths: row.paid_year_months ?? [],
 });
 
 const toTransaction = (row: TransactionRow): Transaction => ({
@@ -65,7 +65,7 @@ export async function fetchTransactions(): Promise<Transaction[]> {
 export async function insertMember(name: string): Promise<Member> {
   const { data, error } = await supabase
     .from("members")
-    .insert({ name, status: "active", payment_type: "monthly", paid_months: [] })
+    .insert({ name, status: "active", payment_type: "monthly", paid_year_months: [] })
     .select()
     .single();
   if (error) throw error;
@@ -88,7 +88,7 @@ export async function insertMembers(members: NewMemberInput[]): Promise<Member[]
         name: m.name,
         status: m.status,
         payment_type: m.paymentType,
-        paid_months: [],
+        paid_year_months: [],
       })),
     )
     .select();
@@ -98,12 +98,12 @@ export async function insertMembers(members: NewMemberInput[]): Promise<Member[]
 
 export async function updateMember(
   id: string,
-  patch: Partial<{ status: Member["status"]; paymentType: Member["paymentType"]; paidMonths: number[] }>,
+  patch: Partial<{ status: Member["status"]; paymentType: Member["paymentType"]; paidYearMonths: string[] }>,
 ): Promise<void> {
   const dbPatch: Record<string, unknown> = {};
   if (patch.status !== undefined) dbPatch.status = patch.status;
   if (patch.paymentType !== undefined) dbPatch.payment_type = patch.paymentType;
-  if (patch.paidMonths !== undefined) dbPatch.paid_months = patch.paidMonths;
+  if (patch.paidYearMonths !== undefined) dbPatch.paid_year_months = patch.paidYearMonths;
   const { error } = await supabase.from("members").update(dbPatch).eq("id", id);
   if (error) throw error;
 }

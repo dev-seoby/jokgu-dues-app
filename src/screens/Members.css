@@ -114,3 +114,15 @@
   padding: 40px;
   text-align: center;
 }
+
+.year-stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.year-stepper-label {
+  min-width: 56px;
+  text-align: center;
+}

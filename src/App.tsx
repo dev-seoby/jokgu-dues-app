@@ -8,6 +8,7 @@ import { Members } from "./screens/Members";
 import { Report } from "./screens/Report";
 import { Login } from "./screens/Login";
 import type { Member, Transaction } from "./data/mock";
+import { yearMonthKey } from "./data/mock";
 import { useAuth } from "./hooks/useAuth";
 import * as api from "./lib/api";
 import { exportBackup } from "./lib/exportBackup";
@@ -100,37 +101,63 @@ function App() {
     }
   };
 
-  const handleToggleMonth = async (memberId: string, month: number) => {
+  const handleToggleMonth = async (memberId: string, year: number, month: number) => {
     const target = members.find((m) => m.id === memberId);
     if (!target) return;
-    const nextPaidMonths = target.paidMonths.includes(month)
-      ? target.paidMonths.filter((mo) => mo !== month)
-      : [...target.paidMonths, month];
-    setMembers((prev) => prev.map((m) => (m.id === memberId ? { ...m, paidMonths: nextPaidMonths } : m)));
+    const key = yearMonthKey(year, month);
+    const nextPaidYearMonths = target.paidYearMonths.includes(key)
+      ? target.paidYearMonths.filter((ym) => ym !== key)
+      : [...target.paidYearMonths, key];
+    setMembers((prev) => prev.map((m) => (m.id === memberId ? { ...m, paidYearMonths: nextPaidYearMonths } : m)));
     try {
-      await api.updateMember(memberId, { paidMonths: nextPaidMonths });
+      await api.updateMember(memberId, { paidYearMonths: nextPaidYearMonths });
     } catch {
       reportMutationError();
     }
   };
 
-  const handleBulkSetMonth = async (month: number, paid: boolean) => {
-    const targets = members.filter((m) => m.status === "active");
+  const handleBulkSetMonth = async (year: number, month: number, paid: boolean) => {
+    const key = yearMonthKey(year, month);
+    // 연납 회원은 개별 월 단위가 아니라 "연납 처리" 액션으로 별도 관리하므로 대상에서 제외
+    const targets = members.filter((m) => m.status === "active" && m.paymentType === "monthly");
     setMembers((prev) =>
       prev.map((m) => {
-        if (m.status !== "active") return m;
-        const withoutMonth = m.paidMonths.filter((mo) => mo !== month);
-        return { ...m, paidMonths: paid ? [...withoutMonth, month] : withoutMonth };
+        if (m.status !== "active" || m.paymentType !== "monthly") return m;
+        const without = m.paidYearMonths.filter((ym) => ym !== key);
+        return { ...m, paidYearMonths: paid ? [...without, key] : without };
       }),
     );
     try {
       await Promise.all(
         targets.map((m) => {
-          const withoutMonth = m.paidMonths.filter((mo) => mo !== month);
-          const paidMonths = paid ? [...withoutMonth, month] : withoutMonth;
-          return api.updateMember(m.id, { paidMonths });
+          const without = m.paidYearMonths.filter((ym) => ym !== key);
+          const paidYearMonths = paid ? [...without, key] : without;
+          return api.updateMember(m.id, { paidYearMonths });
         }),
       );
+    } catch {
+      reportMutationError();
+    }
+  };
+
+  /** 연납 회원의 특정 연도 1~12월을 한 번에 처리(또는 취소) */
+  const handleToggleAnnualLump = async (memberId: string, year: number) => {
+    const target = members.find((m) => m.id === memberId);
+    if (!target) return;
+    const yearKeys = Array.from({ length: 12 }, (_, i) => yearMonthKey(year, i + 1));
+    const alreadyFull = yearKeys.every((key) => target.paidYearMonths.includes(key));
+    const confirmed = window.confirm(
+      alreadyFull
+        ? `${target.name} 님의 ${year}년 연납 처리를 취소할까요?`
+        : `${target.name} 님을 ${year}년 연납 완료로 처리할까요? (1~12월 전체)`,
+    );
+    if (!confirmed) return;
+    const nextPaidYearMonths = alreadyFull
+      ? target.paidYearMonths.filter((ym) => !yearKeys.includes(ym))
+      : [...new Set([...target.paidYearMonths, ...yearKeys])];
+    setMembers((prev) => prev.map((m) => (m.id === memberId ? { ...m, paidYearMonths: nextPaidYearMonths } : m)));
+    try {
+      await api.updateMember(memberId, { paidYearMonths: nextPaidYearMonths });
     } catch {
       reportMutationError();
     }
@@ -157,22 +184,22 @@ function App() {
   };
 
   /** 거래내역 업로드 시 자동 매칭된 회원 납부월을 실제로 반영 */
-  const handleApplyMemberPayments = async (updates: { memberId: string; months: number[] }[]) => {
+  const handleApplyMemberPayments = async (updates: { memberId: string; yearMonths: string[] }[]) => {
     if (updates.length === 0) return;
-    const nextMembersById = new Map<string, number[]>();
+    const nextMembersById = new Map<string, string[]>();
     setMembers((prev) =>
       prev.map((m) => {
         const update = updates.find((u) => u.memberId === m.id);
         if (!update) return m;
-        const merged = [...new Set([...m.paidMonths, ...update.months])].sort((a, b) => a - b);
+        const merged = [...new Set([...m.paidYearMonths, ...update.yearMonths])].sort();
         nextMembersById.set(m.id, merged);
-        return { ...m, paidMonths: merged };
+        return { ...m, paidYearMonths: merged };
       }),
     );
     try {
       await Promise.all(
-        [...nextMembersById.entries()].map(([memberId, paidMonths]) =>
-          api.updateMember(memberId, { paidMonths }),
+        [...nextMembersById.entries()].map(([memberId, paidYearMonths]) =>
+          api.updateMember(memberId, { paidYearMonths }),
         ),
       );
     } catch {
@@ -313,6 +340,7 @@ function App() {
                   members={members}
                   onToggleMonth={handleToggleMonth}
                   onBulkSetMonth={handleBulkSetMonth}
+                  onToggleAnnualLump={handleToggleAnnualLump}
                   onAddMember={handleAddMember}
                   onImportMembers={handleImportMembers}
                   onToggleResting={handleToggleResting}

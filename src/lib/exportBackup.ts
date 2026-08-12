@@ -13,7 +13,7 @@ export function exportBackup(members: Member[], transactions: Transaction[]) {
     이름: m.name,
     상태: m.status === "active" ? "활동" : "휴회",
     납부방식: m.paymentType === "annual_lump" ? "연납" : "월납",
-    "납부완료월(쉼표구분)": [...m.paidMonths].sort((a, b) => a - b).join(", "),
+    "납부완료 연월(쉼표구분)": [...m.paidYearMonths].sort().join(", "),
   }));
 
   const transactionRows = transactions.map((t) => ({

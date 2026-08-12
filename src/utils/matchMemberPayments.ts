@@ -1,4 +1,5 @@
 import type { Member } from "../data/mock";
+import { yearMonthKey } from "../data/mock";
 
 /**
  * 거래내역 업로드 시, 입금 건의 메모(예: "임지섭 7월", "이세일7,8월")를 보고
@@ -70,4 +71,16 @@ export function parseMonthsText(monthsText: string): number[] {
     if (Number.isInteger(n) && n >= 1 && n <= 12) months.add(n);
   }
   return [...months].sort((a, b) => a - b);
+}
+
+/**
+ * 미리보기에서 총무가 입력한 "7,8" 같은 월 문자열을, 해당 거래의 실제 날짜(연도)와
+ * 묶어서 "2026-07", "2026-08" 같은 연-월 키로 변환한다.
+ *
+ * 회원관리는 연도별로 납부월을 저장하므로, 몇 년치가 섞인 파일을 업로드해도
+ * 각 거래 자신의 날짜에서 연도를 가져오기 때문에 자동으로 올바른 연도에 반영된다.
+ */
+export function toYearMonthKeys(monthsText: string, referenceDateISO: string): string[] {
+  const year = Number(referenceDateISO.slice(0, 4));
+  return parseMonthsText(monthsText).map((month) => yearMonthKey(year, month));
 }

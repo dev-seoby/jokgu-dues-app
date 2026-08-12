@@ -38,7 +38,7 @@ export function Report({ transactions, members }: { transactions: Transaction[];
 
   const activeMembers = useMemo(() => members.filter((mm) => mm.status === "active"), [members]);
   const unpaidMembers = useMemo(
-    () => activeMembers.filter((mm) => !isPaid(mm, selectedMonth)),
+    () => activeMembers.filter((mm) => !isPaid(mm, CURRENT_YEAR, selectedMonth)),
     [activeMembers, selectedMonth],
   );
 

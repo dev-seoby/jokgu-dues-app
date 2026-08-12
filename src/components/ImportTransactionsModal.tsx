@@ -11,7 +11,7 @@ import {
   DecryptFailedError,
   type StagedTransactionRow,
 } from "../utils/importTransactions";
-import { suggestPaymentMatch, parseMonthsText } from "../utils/matchMemberPayments";
+import { suggestPaymentMatch, toYearMonthKeys } from "../utils/matchMemberPayments";
 import "./ImportTransactionsModal.css";
 
 /**
@@ -40,7 +40,7 @@ export function ImportTransactionsModal({
   members: Member[];
   onClose: () => void;
   onImport: (transactions: Omit<Transaction, "id">[]) => void;
-  onApplyMemberPayments: (updates: { memberId: string; months: number[] }[]) => void;
+  onApplyMemberPayments: (updates: { memberId: string; yearMonths: string[] }[]) => void;
 }) {
   const [rows, setRows] = useState<StagedTransactionRow[] | null>(null);
   const [headerRecognized, setHeaderRecognized] = useState(true);
@@ -150,21 +150,21 @@ export function ImportTransactionsModal({
     if (toImport.length === 0) return;
 
     // 회원 납부월 자동 반영: 체크된 입금 건 중, 회원이 매칭되어 있고
-    // 월이 입력된 건만 모아서 회원별로 합친다.
-    const monthsByMember = new Map<string, Set<number>>();
+    // 월이 입력된 건만 모아서 회원별로 합친다. 연도는 각 거래 자신의 날짜에서 가져온다.
+    const yearMonthsByMember = new Map<string, Set<string>>();
     for (const row of rows) {
       if (row.type !== "income" || !row.include) continue;
       const match = paymentMatches[row.key];
       if (!match || !match.memberId) continue;
-      const months = parseMonthsText(match.monthsText);
-      if (months.length === 0) continue;
-      const set = monthsByMember.get(match.memberId) ?? new Set<number>();
-      months.forEach((m) => set.add(m));
-      monthsByMember.set(match.memberId, set);
+      const yearMonths = toYearMonthKeys(match.monthsText, row.date);
+      if (yearMonths.length === 0) continue;
+      const set = yearMonthsByMember.get(match.memberId) ?? new Set<string>();
+      yearMonths.forEach((ym) => set.add(ym));
+      yearMonthsByMember.set(match.memberId, set);
     }
-    const updates = [...monthsByMember.entries()].map(([memberId, months]) => ({
+    const updates = [...yearMonthsByMember.entries()].map(([memberId, yearMonths]) => ({
       memberId,
-      months: [...months].sort((a, b) => a - b),
+      yearMonths: [...yearMonths].sort(),
     }));
 
     onImport(toImport);

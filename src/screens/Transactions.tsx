@@ -26,7 +26,7 @@ export function Transactions({
   members: Member[];
   onAddTransaction: (tx: Omit<Transaction, "id">) => void;
   onImportTransactions: (txs: Omit<Transaction, "id">[]) => void;
-  onApplyMemberPayments: (updates: { memberId: string; months: number[] }[]) => void;
+  onApplyMemberPayments: (updates: { memberId: string; yearMonths: string[] }[]) => void;
   onUpdateTransaction: (id: string, patch: Partial<Omit<Transaction, "id">>) => void;
   onDeleteTransaction: (id: string) => void;
 }) {

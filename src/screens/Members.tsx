@@ -1,16 +1,19 @@
 import { useMemo, useState } from "react";
 import { ActionButton, HStack, Icon, Text, TextField } from "@seed-design/react";
 import type { Member } from "../data/mock";
-import { CURRENT_MONTH, isPaid } from "../data/mock";
+import { CURRENT_MONTH, CURRENT_YEAR, isPaid, isYearFullyPaid } from "../data/mock";
 import { PageHeader } from "../components/PageHeader";
 import { ImportMembersModal } from "../components/ImportMembersModal";
 import { CloseIcon, SearchIcon } from "../components/icons";
 import "./Members.css";
 
+const MIN_YEAR = 2026; // 대시보드 도입 연도 — 그 이전은 이 시스템으로 관리한 적이 없어서 조회 의미가 없음
+
 export function Members({
   members,
   onToggleMonth,
   onBulkSetMonth,
+  onToggleAnnualLump,
   onAddMember,
   onImportMembers,
   onToggleResting,
@@ -18,8 +21,9 @@ export function Members({
   onTogglePaymentType,
 }: {
   members: Member[];
-  onToggleMonth: (memberId: string, month: number) => void;
-  onBulkSetMonth: (month: number, paid: boolean) => void;
+  onToggleMonth: (memberId: string, year: number, month: number) => void;
+  onBulkSetMonth: (year: number, month: number, paid: boolean) => void;
+  onToggleAnnualLump: (memberId: string, year: number) => void;
   onAddMember: (name: string) => void;
   onImportMembers: (members: { name: string; status: Member["status"]; paymentType: Member["paymentType"] }[]) => void;
   onToggleResting: (memberId: string) => void;
@@ -28,6 +32,7 @@ export function Members({
 }) {
   const [keyword, setKeyword] = useState("");
   const [newName, setNewName] = useState("");
+  const [selectedYear, setSelectedYear] = useState(CURRENT_YEAR);
   const [selectedMonth, setSelectedMonth] = useState(CURRENT_MONTH);
   const [importOpen, setImportOpen] = useState(false);
 
@@ -37,7 +42,10 @@ export function Members({
   );
 
   const activeCount = members.filter((m) => m.status === "active").length;
-  const paidCount = members.filter((m) => m.status === "active" && isPaid(m, selectedMonth)).length;
+  const paidCount = members.filter((m) => m.status === "active" && isPaid(m, selectedYear, selectedMonth)).length;
+
+  const canGoPrevYear = selectedYear > MIN_YEAR;
+  const canGoNextYear = selectedYear < CURRENT_YEAR + 1;
 
   const handleAdd = () => {
     const name = newName.trim();
@@ -56,7 +64,7 @@ export function Members({
     <>
       <PageHeader
         title="회원관리"
-        subtitle={`활동 회원 ${activeCount}명 · ${selectedMonth}월 납부 ${paidCount}명`}
+        subtitle={`활동 회원 ${activeCount}명 · ${selectedYear}년 ${selectedMonth}월 납부 ${paidCount}명`}
         action={
           <HStack gap="x2">
             <ActionButton variant="ghost" size="medium" onClick={() => setImportOpen(true)}>
@@ -65,16 +73,51 @@ export function Members({
             <ActionButton
               variant="neutralOutline"
               size="medium"
-              onClick={() => onBulkSetMonth(selectedMonth, true)}
+              onClick={() => onBulkSetMonth(selectedYear, selectedMonth, true)}
             >
               {selectedMonth}월 전체 납부처리
             </ActionButton>
-            <ActionButton variant="ghost" size="medium" onClick={() => onBulkSetMonth(selectedMonth, false)}>
+            <ActionButton
+              variant="ghost"
+              size="medium"
+              onClick={() => onBulkSetMonth(selectedYear, selectedMonth, false)}
+            >
               전체 취소
             </ActionButton>
           </HStack>
         }
       />
+
+      <div className="year-stepper">
+        <ActionButton
+          size="xsmall"
+          variant="ghost"
+          layout="iconOnly"
+          aria-label="이전 연도"
+          disabled={!canGoPrevYear}
+          onClick={() => setSelectedYear((y) => y - 1)}
+        >
+          ‹
+        </ActionButton>
+        <Text textStyle="t3Bold" color="fg.neutral" className="year-stepper-label">
+          {selectedYear}년
+        </Text>
+        <ActionButton
+          size="xsmall"
+          variant="ghost"
+          layout="iconOnly"
+          aria-label="다음 연도"
+          disabled={!canGoNextYear}
+          onClick={() => setSelectedYear((y) => y + 1)}
+        >
+          ›
+        </ActionButton>
+        {selectedYear !== CURRENT_YEAR && (
+          <ActionButton size="xsmall" variant="ghost" onClick={() => setSelectedYear(CURRENT_YEAR)}>
+            올해로
+          </ActionButton>
+        )}
+      </div>
 
       <div className="month-tabs-wrap">
         <div className="month-tabs" role="tablist" aria-label="월 선택">
@@ -123,10 +166,14 @@ export function Members({
           <span>이름</span>
           <span>납부방식</span>
           <span>상태</span>
-          <span className="members-col-center">{selectedMonth}월 납부</span>
+          <span className="members-col-center">
+            {selectedYear}년 {selectedMonth}월 납부
+          </span>
         </div>
         {filtered.map((m) => {
-          const paid = isPaid(m, selectedMonth);
+          const isAnnual = m.paymentType === "annual_lump";
+          const paid = isPaid(m, selectedYear, selectedMonth);
+          const annualPaidThisYear = isYearFullyPaid(m, selectedYear);
           const resting = m.status === "resting";
           return (
             <div className={`members-table-row ${resting ? "is-resting" : ""}`} key={m.id}>
@@ -147,10 +194,10 @@ export function Members({
               </div>
               <ActionButton
                 size="xsmall"
-                variant={m.paymentType === "annual_lump" ? "brandSolid" : "neutralOutline"}
+                variant={isAnnual ? "brandSolid" : "neutralOutline"}
                 onClick={() => onTogglePaymentType(m.id)}
               >
-                {m.paymentType === "annual_lump" ? "연납" : "월납"}
+                {isAnnual ? "연납" : "월납"}
               </ActionButton>
               <ActionButton
                 size="xsmall"
@@ -162,11 +209,23 @@ export function Members({
               <div className="members-col-center">
                 <ActionButton
                   size="xsmall"
-                  variant={paid ? "brandSolid" : "criticalSolid"}
-                  disabled={m.paymentType === "annual_lump" || resting}
-                  onClick={() => onToggleMonth(m.id, selectedMonth)}
+                  variant={(isAnnual ? annualPaidThisYear : paid) ? "brandSolid" : "criticalSolid"}
+                  disabled={resting}
+                  onClick={() =>
+                    isAnnual
+                      ? onToggleAnnualLump(m.id, selectedYear)
+                      : onToggleMonth(m.id, selectedYear, selectedMonth)
+                  }
                 >
-                  {m.paymentType === "annual_lump" ? "연납완료" : resting ? "휴회" : paid ? "납부완료" : "미납"}
+                  {resting
+                    ? "휴회"
+                    : isAnnual
+                      ? annualPaidThisYear
+                        ? "연납완료"
+                        : `${selectedYear}년 연납대기`
+                      : paid
+                        ? "납부완료"
+                        : "미납"}
                 </ActionButton>
               </div>
             </div>

@@ -37,7 +37,7 @@ export function Home({
   const recent = [...transactions].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, 6);
 
   const activeMembersList = members.filter((m) => m.status === "active");
-  const unpaidCount = activeMembersList.filter((m) => !isPaid(m, CURRENT_MONTH)).length;
+  const unpaidCount = activeMembersList.filter((m) => !isPaid(m, CURRENT_YEAR, CURRENT_MONTH)).length;
   const total = activeMembersList.length;
   const paidRatio = total === 0 ? 0 : Math.round(((total - unpaidCount) / total) * 100);
 
