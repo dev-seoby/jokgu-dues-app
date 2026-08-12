@@ -47,14 +47,12 @@ export function Report({ transactions, members }: { transactions: Transaction[];
   const canGoNextYear = gridYear < CURRENT_YEAR + 1;
 
   const activeMembers = useMemo(() => members.filter((mm) => mm.status === "active"), [members]);
-  const unpaidMembers = useMemo(() => {
-    if (selectedMonth === "total") {
-      // "지금까지" 기준 — 올해 1월부터 이번 달까지 중 한 달이라도 미납인 회원
-      const monthsToCheck = Array.from({ length: CURRENT_MONTH }, (_, i) => i + 1);
-      return activeMembers.filter((mm) => monthsToCheck.some((mo) => !isPaid(mm, CURRENT_YEAR, mo)));
-    }
-    return activeMembers.filter((mm) => !isPaid(mm, CURRENT_YEAR, selectedMonth));
-  }, [activeMembers, selectedMonth]);
+  // Total 선택 시에도 미납 회원 목록은 이번 달 기준을 그대로 유지 (지출 카테고리만 전체 기간으로 확장)
+  const unpaidListMonth = selectedMonth === "total" ? CURRENT_MONTH : selectedMonth;
+  const unpaidMembers = useMemo(
+    () => activeMembers.filter((mm) => !isPaid(mm, CURRENT_YEAR, unpaidListMonth)),
+    [activeMembers, unpaidListMonth],
+  );
 
   const categorySpend = useMemo(() => {
     const relevantTx =
@@ -145,48 +143,78 @@ export function Report({ transactions, members }: { transactions: Transaction[];
           <span className="legend-item"><i className="legend-dot future" />예정</span>
         </div>
 
-        <div className="payment-grid">
-          <div className="payment-grid-header">
-            <span className="payment-grid-name-col" />
-            <div className="payment-grid-months">
-              {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
-                <span key={month}>{month}</span>
-              ))}
-            </div>
-          </div>
-          <div className="payment-grid-body">
-            {sortedMembers.map((member) => (
-              <div className="payment-grid-row" key={member.id}>
-                <Text textStyle="t3Medium" color="fg.neutral" className="payment-grid-name">
-                  {member.name}
-                </Text>
-                <div className="payment-grid-bar">
-                  {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => {
-                    const status = monthCellStatus(member, gridYear, month);
-                    return (
-                      <div
-                        key={month}
-                        className={`payment-cell ${status}`}
-                        title={`${member.name} · ${gridYear}년 ${month}월 · ${
-                          status === "paid"
-                            ? "납부완료"
-                            : status === "resting"
-                              ? "휴회"
-                              : status === "future"
-                                ? "예정"
-                                : "미납"
-                        }`}
-                      />
-                    );
-                  })}
-                </div>
+        <div className="payment-grid-scroll">
+          <div className="payment-grid">
+            <div className="payment-grid-header">
+              <span className="payment-grid-name-col">회원 ({sortedMembers.length}명)</span>
+              <div className="payment-grid-months">
+                {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                  <span
+                    key={month}
+                    className={gridYear === CURRENT_YEAR && month === CURRENT_MONTH ? "current-month" : ""}
+                  >
+                    {month}월
+                  </span>
+                ))}
               </div>
-            ))}
-            {sortedMembers.length === 0 && (
-              <Text textStyle="t4Regular" color="fg.neutralMuted">
-                등록된 회원이 없어요
-              </Text>
-            )}
+              <span className="payment-grid-ratio-col">납부율</span>
+            </div>
+            <div className="payment-grid-body">
+              {sortedMembers.map((member, idx) => {
+                const isResting = member.status === "resting";
+                const paidCount = Array.from({ length: 12 }, (_, i) => i + 1).filter(
+                  (month) => monthCellStatus(member, gridYear, month) === "paid",
+                ).length;
+                return (
+                  <div className={`payment-grid-row ${idx % 2 === 1 ? "alt" : ""}`} key={member.id}>
+                    <div className="payment-grid-name-cell">
+                      <span className={`payment-grid-avatar ${isResting ? "resting" : ""}`}>
+                        {member.name.slice(0, 1)}
+                      </span>
+                      <Text textStyle="t3Medium" color="fg.neutral" className="payment-grid-name">
+                        {member.name}
+                      </Text>
+                      {isResting && <span className="resting-badge">휴회</span>}
+                    </div>
+                    <div className="payment-grid-bar">
+                      {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => {
+                        const status = monthCellStatus(member, gridYear, month);
+                        const isCurrent = gridYear === CURRENT_YEAR && month === CURRENT_MONTH;
+                        return (
+                          <div
+                            key={month}
+                            className={`payment-cell ${status} ${isCurrent ? "current-month" : ""}`}
+                            title={`${member.name} · ${gridYear}년 ${month}월 · ${
+                              status === "paid"
+                                ? "납부완료"
+                                : status === "resting"
+                                  ? "휴회"
+                                  : status === "future"
+                                    ? "예정"
+                                    : "미납"
+                            }`}
+                          >
+                            {status === "paid" && <span className="payment-cell-check">✓</span>}
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <Text
+                      textStyle="t4Bold"
+                      color={isResting ? "fg.neutralMuted" : paidCount === 12 ? "fg.brand" : "fg.neutralMuted"}
+                      className="payment-grid-ratio"
+                    >
+                      {isResting ? "휴회" : `${paidCount}/12`}
+                    </Text>
+                  </div>
+                );
+              })}
+              {sortedMembers.length === 0 && (
+                <Text textStyle="t4Regular" color="fg.neutralMuted">
+                  등록된 회원이 없어요
+                </Text>
+              )}
+            </div>
           </div>
         </div>
       </section>
@@ -219,7 +247,7 @@ export function Report({ transactions, members }: { transactions: Transaction[];
         <section className="report-section">
           <div className="section-header-row">
             <Text as="h2" textStyle="t5Bold" color="fg.neutral">
-              {selectedMonth === "total" ? "올해 미납 이력 있는 회원" : `${selectedMonth}월 미납 회원`}
+              {`${unpaidListMonth}월 미납 회원`}
             </Text>
             <Text textStyle="t4Bold" color="fg.critical">
               {unpaidMembers.length}명
