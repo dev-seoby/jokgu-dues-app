@@ -88,20 +88,19 @@
 .payment-grid {
   display: flex;
   flex-direction: column;
-  min-width: 620px;
+  min-width: 720px;
 }
 
 .payment-grid-header,
 .payment-grid-row {
   display: grid;
-  grid-template-columns: 172px repeat(12, minmax(30px, 1fr)) 56px;
-  gap: 0;
+  grid-template-columns: 176px 1fr 60px;
+  gap: 14px;
   align-items: center;
-  column-gap: 4px;
 }
 
 .payment-grid-header {
-  padding: 0 4px 8px;
+  padding: 0 8px 10px;
   border-bottom: 2px solid var(--seed-color-stroke-neutral-muted, #eaeaea);
   position: sticky;
   top: 0;
@@ -113,6 +112,7 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--seed-color-fg-neutral-muted, #8b8b8b);
+  padding-left: 8px;
 }
 
 .payment-grid-ratio-col {
@@ -124,14 +124,16 @@
 
 .payment-grid-months {
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 4px;
 }
 
 .payment-grid-months span {
   text-align: center;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 500;
   color: var(--seed-color-fg-neutral-muted, #8b8b8b);
+  white-space: nowrap;
 }
 
 .payment-grid-months span.current-month {
@@ -147,17 +149,17 @@
 }
 
 .payment-grid-row {
-  padding: 5px 4px;
+  padding: 7px 8px;
   border-radius: 8px;
   transition: background-color 0.12s ease;
 }
 
 .payment-grid-row.alt {
-  background: var(--seed-color-bg-neutral-weakest, #fafafb);
+  background: var(--seed-color-bg-neutral-weak, rgba(140, 140, 140, 0.12));
 }
 
 .payment-grid-row:hover {
-  background: var(--seed-color-bg-brand-weakest, #eef4ff);
+  background: var(--seed-color-bg-neutral-weak-pressed, rgba(140, 140, 140, 0.2));
 }
 
 .payment-grid-name-cell {
@@ -204,13 +206,13 @@
 
 .payment-grid-bar {
   display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 3px;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: 4px;
 }
 
 .payment-cell {
-  height: 22px;
-  border-radius: 5px;
+  height: 26px;
+  border-radius: 6px;
   background: var(--seed-color-bg-neutral-weak, #eee);
   cursor: default;
   display: flex;
