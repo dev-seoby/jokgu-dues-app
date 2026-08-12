@@ -43,66 +43,123 @@
   justify-content: space-between;
 }
 
-.net-chart {
+.payment-grid-legend {
   display: flex;
-  flex-direction: column;
-  gap: 10px;
+  gap: 16px;
+  flex-wrap: wrap;
 }
 
-.net-row {
-  display: grid;
-  grid-template-columns: 36px 1fr 100px;
+.legend-item {
+  display: inline-flex;
   align-items: center;
-  gap: 12px;
-}
-
-.net-month {
-  font-size: 13px;
+  gap: 6px;
+  font-size: 12px;
   color: var(--seed-color-fg-neutral-muted, #8b8b8b);
 }
 
-.net-track {
-  position: relative;
+.legend-dot {
+  width: 10px;
   height: 10px;
-  background: var(--seed-color-bg-neutral-weak, #eee);
-  border-radius: 6px;
-  overflow: hidden;
+  border-radius: 3px;
+  display: inline-block;
 }
 
-.net-baseline {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  bottom: 0;
-  width: 1px;
-  background: rgba(0, 0, 0, 0.18);
-  z-index: 1;
-}
-
-.net-bar {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  border-radius: 6px;
-}
-
-.net-bar.positive {
+.legend-dot.paid {
   background: var(--seed-color-bg-brand-solid, #3182f6);
 }
 
-.net-bar.negative {
+.legend-dot.unpaid {
   background: var(--seed-color-bg-critical-solid, #f04452);
 }
 
-.net-amount {
-  font-size: 13px;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-  color: var(--seed-color-fg-neutral, #1c1c1e);
+.legend-dot.resting {
+  background: var(--seed-color-bg-neutral-weak, #d9d9d9);
 }
 
-.net-amount.negative {
-  color: var(--seed-color-fg-critical, #f04452);
+.legend-dot.future {
+  background: var(--seed-color-bg-layer-default, #ffffff);
+  border: 1px dashed var(--seed-color-stroke-neutral-muted, #c7c7c7);
+}
+
+.payment-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.payment-grid-header,
+.payment-grid-row {
+  display: grid;
+  grid-template-columns: 96px 1fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.payment-grid-months {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 3px;
+}
+
+.payment-grid-months span {
+  text-align: center;
+  font-size: 11px;
+  color: var(--seed-color-fg-neutral-muted, #8b8b8b);
+}
+
+.payment-grid-body {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-height: 420px;
+  overflow-y: auto;
+}
+
+.payment-grid-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.payment-grid-bar {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 3px;
+}
+
+.payment-cell {
+  height: 18px;
+  border-radius: 4px;
+  background: var(--seed-color-bg-neutral-weak, #eee);
+  cursor: default;
+}
+
+.payment-cell.paid {
+  background: var(--seed-color-bg-brand-solid, #3182f6);
+}
+
+.payment-cell.unpaid {
+  background: var(--seed-color-bg-critical-solid, #f04452);
+}
+
+.payment-cell.resting {
+  background: var(--seed-color-bg-neutral-weak, #d9d9d9);
+}
+
+.payment-cell.future {
+  background: var(--seed-color-bg-layer-default, #ffffff);
+  border: 1px dashed var(--seed-color-stroke-neutral-muted, #c7c7c7);
+}
+
+.year-stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.year-stepper-label {
+  min-width: 56px;
+  text-align: center;
 }
 
 .month-tabs-wrap {
@@ -135,6 +192,17 @@
 .month-tab.active {
   background: var(--seed-color-bg-neutral-solid, #1c1c1e);
   color: #ffffff;
+}
+
+.month-tab-total {
+  margin-left: 8px;
+  font-weight: 600;
+  border: 1px solid var(--seed-color-stroke-neutral-muted, #d9d9d9);
+}
+
+.month-tab-total.active {
+  background: var(--seed-color-bg-brand-solid, #3182f6);
+  border-color: transparent;
 }
 
 .report-columns {

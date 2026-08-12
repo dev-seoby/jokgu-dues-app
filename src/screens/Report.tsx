@@ -1,12 +1,28 @@
 import { useMemo, useState } from "react";
-import { Text } from "@seed-design/react";
+import { ActionButton, Text } from "@seed-design/react";
 import type { Member, Transaction } from "../data/mock";
 import { won, isPaid, CURRENT_MONTH, CURRENT_YEAR, EXPENSE_CATEGORIES } from "../data/mock";
 import { PageHeader } from "../components/PageHeader";
 import "./Report.css";
 
+const MIN_YEAR = 2026; // 대시보드 도입 연도
+
+type MonthOrTotal = number | "total";
+
+function monthCellStatus(
+  member: Member,
+  year: number,
+  month: number,
+): "paid" | "unpaid" | "resting" | "future" {
+  if (member.status === "resting") return "resting";
+  if (isPaid(member, year, month)) return "paid";
+  if (year > CURRENT_YEAR || (year === CURRENT_YEAR && month > CURRENT_MONTH)) return "future";
+  return "unpaid";
+}
+
 export function Report({ transactions, members }: { transactions: Transaction[]; members: Member[] }) {
-  const [selectedMonth, setSelectedMonth] = useState(CURRENT_MONTH);
+  const [selectedMonth, setSelectedMonth] = useState<MonthOrTotal>(CURRENT_MONTH);
+  const [gridYear, setGridYear] = useState(CURRENT_YEAR);
 
   const totalIncome = useMemo(
     () => transactions.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0),
@@ -18,36 +34,38 @@ export function Report({ transactions, members }: { transactions: Transaction[];
   );
   const balance = totalIncome - totalExpense;
 
-  const monthlyNet = useMemo(() => {
-    const months = Array.from({ length: 12 }, (_, i) => i + 1);
-    return months
-      .map((month) => {
-        const prefix = `${CURRENT_YEAR}-${String(month).padStart(2, "0")}`;
-        const monthTx = transactions.filter((t) => t.date.startsWith(prefix));
-        const income = monthTx.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
-        const expense = monthTx.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
-        return { month, amount: income - expense, hasData: monthTx.length > 0 };
-      })
-      .filter((m) => m.hasData || m.month <= CURRENT_MONTH);
-  }, [transactions]);
-
-  const maxAbsNet = useMemo(
-    () => Math.max(1, ...monthlyNet.map((m) => Math.abs(m.amount))),
-    [monthlyNet],
+  const sortedMembers = useMemo(
+    () =>
+      [...members].sort((a, b) => {
+        if (a.status !== b.status) return a.status === "active" ? -1 : 1;
+        return a.name.localeCompare(b.name, "ko");
+      }),
+    [members],
   );
+
+  const canGoPrevYear = gridYear > MIN_YEAR;
+  const canGoNextYear = gridYear < CURRENT_YEAR + 1;
 
   const activeMembers = useMemo(() => members.filter((mm) => mm.status === "active"), [members]);
-  const unpaidMembers = useMemo(
-    () => activeMembers.filter((mm) => !isPaid(mm, CURRENT_YEAR, selectedMonth)),
-    [activeMembers, selectedMonth],
-  );
+  const unpaidMembers = useMemo(() => {
+    if (selectedMonth === "total") {
+      // "지금까지" 기준 — 올해 1월부터 이번 달까지 중 한 달이라도 미납인 회원
+      const monthsToCheck = Array.from({ length: CURRENT_MONTH }, (_, i) => i + 1);
+      return activeMembers.filter((mm) => monthsToCheck.some((mo) => !isPaid(mm, CURRENT_YEAR, mo)));
+    }
+    return activeMembers.filter((mm) => !isPaid(mm, CURRENT_YEAR, selectedMonth));
+  }, [activeMembers, selectedMonth]);
 
   const categorySpend = useMemo(() => {
-    const prefix = `${CURRENT_YEAR}-${String(selectedMonth).padStart(2, "0")}`;
-    const monthExpenseTx = transactions.filter((t) => t.type === "expense" && t.date.startsWith(prefix));
+    const relevantTx =
+      selectedMonth === "total"
+        ? transactions.filter((t) => t.type === "expense")
+        : transactions.filter(
+            (t) => t.type === "expense" && t.date.startsWith(`${CURRENT_YEAR}-${String(selectedMonth).padStart(2, "0")}`),
+          );
     const byCategory = EXPENSE_CATEGORIES.map((category) => ({
       category,
-      amount: monthExpenseTx.filter((t) => t.category === category).reduce((s, t) => s + t.amount, 0),
+      amount: relevantTx.filter((t) => t.category === category).reduce((s, t) => s + t.amount, 0),
     })).filter((c) => c.amount > 0);
     const max = Math.max(1, ...byCategory.map((c) => c.amount));
     return byCategory
@@ -55,9 +73,11 @@ export function Report({ transactions, members }: { transactions: Transaction[];
       .sort((a, b) => b.amount - a.amount);
   }, [transactions, selectedMonth]);
 
+  const periodLabel = selectedMonth === "total" ? "지금까지 전체" : `${selectedMonth}월`;
+
   return (
     <>
-      <PageHeader title="리포트" subtitle={`하루FC 회비 · ${selectedMonth}월 기준`} />
+      <PageHeader title="리포트" subtitle={`하루FC 회비 · ${periodLabel} 기준`} />
 
       <div className="report-summary-cards">
         <div className="report-summary-card">
@@ -87,38 +107,92 @@ export function Report({ transactions, members }: { transactions: Transaction[];
       </div>
 
       <section className="report-section">
-        <Text as="h2" textStyle="t5Bold" color="fg.neutral">
-          월별 순증감
-        </Text>
-        <div className="net-chart">
-          {monthlyNet.map(({ month, amount }) => {
-            const isNegative = amount < 0;
-            const widthPct = (Math.abs(amount) / maxAbsNet) * 100;
-            return (
-              <div className="net-row" key={month}>
-                <span className="net-month">{month}월</span>
-                <div className="net-track">
-                  <div className="net-baseline" />
-                  <div
-                    className={`net-bar ${isNegative ? "negative" : "positive"}`}
-                    style={{
-                      width: `${widthPct / 2}%`,
-                      left: isNegative ? `${50 - widthPct / 2}%` : "50%",
-                    }}
-                  />
+        <div className="section-header-row">
+          <Text as="h2" textStyle="t5Bold" color="fg.neutral">
+            회원별 월간 납부 현황
+          </Text>
+          <div className="year-stepper">
+            <ActionButton
+              size="xsmall"
+              variant="ghost"
+              layout="iconOnly"
+              aria-label="이전 연도"
+              disabled={!canGoPrevYear}
+              onClick={() => setGridYear((y) => y - 1)}
+            >
+              ‹
+            </ActionButton>
+            <Text textStyle="t3Bold" color="fg.neutral" className="year-stepper-label">
+              {gridYear}년
+            </Text>
+            <ActionButton
+              size="xsmall"
+              variant="ghost"
+              layout="iconOnly"
+              aria-label="다음 연도"
+              disabled={!canGoNextYear}
+              onClick={() => setGridYear((y) => y + 1)}
+            >
+              ›
+            </ActionButton>
+          </div>
+        </div>
+
+        <div className="payment-grid-legend">
+          <span className="legend-item"><i className="legend-dot paid" />납부완료</span>
+          <span className="legend-item"><i className="legend-dot unpaid" />미납</span>
+          <span className="legend-item"><i className="legend-dot resting" />휴회</span>
+          <span className="legend-item"><i className="legend-dot future" />예정</span>
+        </div>
+
+        <div className="payment-grid">
+          <div className="payment-grid-header">
+            <span className="payment-grid-name-col" />
+            <div className="payment-grid-months">
+              {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
+                <span key={month}>{month}</span>
+              ))}
+            </div>
+          </div>
+          <div className="payment-grid-body">
+            {sortedMembers.map((member) => (
+              <div className="payment-grid-row" key={member.id}>
+                <Text textStyle="t3Medium" color="fg.neutral" className="payment-grid-name">
+                  {member.name}
+                </Text>
+                <div className="payment-grid-bar">
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => {
+                    const status = monthCellStatus(member, gridYear, month);
+                    return (
+                      <div
+                        key={month}
+                        className={`payment-cell ${status}`}
+                        title={`${member.name} · ${gridYear}년 ${month}월 · ${
+                          status === "paid"
+                            ? "납부완료"
+                            : status === "resting"
+                              ? "휴회"
+                              : status === "future"
+                                ? "예정"
+                                : "미납"
+                        }`}
+                      />
+                    );
+                  })}
                 </div>
-                <span className={`net-amount ${isNegative ? "negative" : "positive"}`}>
-                  {isNegative ? "-" : "+"}
-                  {won(Math.abs(amount))}
-                </span>
               </div>
-            );
-          })}
+            ))}
+            {sortedMembers.length === 0 && (
+              <Text textStyle="t4Regular" color="fg.neutralMuted">
+                등록된 회원이 없어요
+              </Text>
+            )}
+          </div>
         </div>
       </section>
 
       <section className="report-section month-tabs-wrap">
-        <div className="month-tabs" role="tablist" aria-label="월 선택">
+        <div className="month-tabs" role="tablist" aria-label="기간 선택">
           {Array.from({ length: 12 }, (_, i) => i + 1).map((month) => (
             <button
               key={month}
@@ -130,6 +204,14 @@ export function Report({ transactions, members }: { transactions: Transaction[];
               {month}월
             </button>
           ))}
+          <button
+            role="tab"
+            aria-selected={selectedMonth === "total"}
+            className={`month-tab month-tab-total ${selectedMonth === "total" ? "active" : ""}`}
+            onClick={() => setSelectedMonth("total")}
+          >
+            Total
+          </button>
         </div>
       </section>
 
@@ -137,7 +219,7 @@ export function Report({ transactions, members }: { transactions: Transaction[];
         <section className="report-section">
           <div className="section-header-row">
             <Text as="h2" textStyle="t5Bold" color="fg.neutral">
-              {selectedMonth}월 미납 회원
+              {selectedMonth === "total" ? "올해 미납 이력 있는 회원" : `${selectedMonth}월 미납 회원`}
             </Text>
             <Text textStyle="t4Bold" color="fg.critical">
               {unpaidMembers.length}명
@@ -159,7 +241,7 @@ export function Report({ transactions, members }: { transactions: Transaction[];
 
         <section className="report-section">
           <Text as="h2" textStyle="t5Bold" color="fg.neutral">
-            {selectedMonth}월 카테고리별 지출
+            {selectedMonth === "total" ? "전체 기간 카테고리별 지출" : `${selectedMonth}월 카테고리별 지출`}
           </Text>
           <div className="category-list">
             {categorySpend.map(({ category, amount, ratio }) => (
